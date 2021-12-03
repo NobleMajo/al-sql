@@ -13,7 +13,7 @@ npm i al-sql
 ## 2. Add tables.ts file
 ```ts
 import { SqlClient } from "al-sql"
-import { PostgressConnection } from "al-sql/pg"
+import { PostgressConnection } from "al-sql/dist/pg"
 
 export const client = new SqlClient(
     new PostgressConnection(
@@ -454,9 +454,6 @@ export class PostgressConnection implements AbstractSqlConnection {
     }
 }
 ```
-
-
-
 
 # contribution
  - 1. fork the project

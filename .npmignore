@@ -1,5 +1,4 @@
 *
 !package.json
-!package-lock.json
-!dist
+!dist/*
 !README.md

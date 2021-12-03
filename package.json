@@ -1,6 +1,6 @@
 {
   "name": "al-sql",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Abstraction_Layer-Sql is a sql abstraction layer that can be used for every sql database to perform simple querys.",
   "main": "dist/index.js",
   "scripts": {

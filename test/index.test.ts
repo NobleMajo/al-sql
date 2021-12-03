@@ -2,11 +2,11 @@ import "mocha"
 import { expect } from 'chai';
 
 import { Client } from "../src/fakeClient"
-import { PostgressConnection } from "../src/pg"
+import { PostgresConnection } from "../src/pg"
 import { SqlClient } from "../src/index"
 
 let fakeClient: Client
-let con: PostgressConnection
+let con: PostgresConnection
 let client: SqlClient
 
 describe('fake client', () => {
@@ -15,7 +15,7 @@ describe('fake client', () => {
     })
 
     it('create fake postgres connection', () => {
-        con = new PostgressConnection("", -1, "", "", "");
+        con = new PostgresConnection("", -1, "", "", "");
         (con as any).client = fakeClient
     })
 

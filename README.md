@@ -23,10 +23,10 @@ npm i al-sql
 ## 2. Add tables.ts file
 ```ts
 import { SqlClient } from "al-sql"
-import { PostgressConnection } from "al-sql/dist/pg"
+import { PostgresConnection } from "al-sql/dist/pg"
 
 export const client = new SqlClient(
-    new PostgressConnection(
+    new PostgresConnection(
         env.POSTGRES_HOST,
         env.POSTGRES_PORT,
         env.POSTGRES_USER,
@@ -410,7 +410,7 @@ export interface AbstractSqlDialect {
 ## Postgres connection via 'pg'
 The postgres connection implementation looks like this:
 ```ts
-export class PostgressConnection implements AbstractSqlConnection {
+export class PostgresConnection implements AbstractSqlConnection {
     public readonly client: Client
     public readonly dialect: PostgresSqlDialect
     public connected: boolean = false

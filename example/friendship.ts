@@ -1,8 +1,8 @@
 import { SqlClient } from "../src/index"
-import { PostgressConnection } from "../src/pg"
+import { PostgresConnection } from "../src/pg"
 
 export const client = new SqlClient(
-    new PostgressConnection(
+    new PostgresConnection(
         process.env.POSTGRES_HOST,
         Number(process.env.POSTGRES_PORT),
         process.env.POSTGRES_USER,

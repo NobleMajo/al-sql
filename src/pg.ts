@@ -296,7 +296,7 @@ export class PostgresSqlDialect implements AbstractSqlDialect {
     }
 }
 
-export class PostgressConnection implements AbstractSqlConnection {
+export class PostgresConnection implements AbstractSqlConnection {
     public readonly client: Client
     public readonly dialect: PostgresSqlDialect
     public connected: boolean = false

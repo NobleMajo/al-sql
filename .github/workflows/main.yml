@@ -1,0 +1,73 @@
+name: TypeScript package
+
+on: 
+  push:
+    branches:
+      - main
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+      - run: npm ci
+      - run: npm test
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+      - run: npm ci
+      - run: npm run compile
+      - name: Temporarily save dist folder
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist-artifact
+          path: dist
+          retention-days: 1
+  publish-npm:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+          registry-url: https://registry.npmjs.org/
+      - name: Retrieve saved dist folder
+        uses: actions/download-artifact@v2
+        with:
+          name: dist-artifact
+          path: dist
+      - run: npm ci --only=prod
+      - run: npm publish --access public
+      - run: git reset --hard
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+  publish-gpr:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+          registry-url: https://npm.pkg.github.com/
+      - name: Retrieve saved dist folder
+        uses: actions/download-artifact@v2
+        with:
+          name: dist-artifact
+          path: dist
+      - run: npm ci --only=prod
+      - run: npm publish --access public
+      - run: git reset --hard
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}

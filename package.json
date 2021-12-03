@@ -1,0 +1,29 @@
+{
+  "name": "al-sql",
+  "version": "1.0.0",
+  "description": "Abstraction_Layer-Sql is a sql abstraction layer that can be used for every sql database to perform simple querys.",
+  "main": "dist/index.js",
+  "scripts": {
+    "compile": "tsc -p .",
+    "test": "mocha -r ts-node/register 'test/**/*.test.ts'"
+  },
+  "repository": {
+    "url": "git@github.com:HalsMaulMajo/al-sql.git",
+    "type": "git"
+  },
+  "author": "HalsMaulMajo",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/chai": "^4",
+    "@types/mocha": "^8",
+    "@types/node": "^16",
+    "chai": "^4",
+    "mocha": "^9",
+    "nodemon": "^2",
+    "ts-node": "^10",
+    "typescript": "^4"
+  },
+  "dependencies": {
+    "colors": "^1.4.0"
+  }
+}

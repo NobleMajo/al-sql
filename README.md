@@ -4,6 +4,16 @@
 
 There is already a working postgres abstraction implementation that you can use for a postgres databases or as base to create a own abstraction implementation.
 
+# Features
+ - Abstract layer between objects and real database
+ - One table and function definition for any sql (an nonesql) database
+ - Database assets
+
+# Assets
+Example:  
+showResult(object, ...options) / showTable(table, ...options)  
+![showTables output](https://raw.githubusercontent.com/HalsMaulMajo/al-sql/main/docs/pics/showTables.png)
+
 # Getting started (postgres)
 ## 1. Install package
 ```sh

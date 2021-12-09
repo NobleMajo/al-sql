@@ -10,11 +10,11 @@ describe('fake client', () => {
 
     it("create postgres connection", () => {
         con = new PostgresConnection(
-            "37.131.246.47",
-            30052,
-            "fleetform",
-            "fleetformPw",
-            "fleetform"
+           process.env.POSTGRES_HOST ?? "localhost",
+           process.env.POSTGRES_PORT ? Number(process.env.POSTGRES_HOST) : 4321,
+           process.env.POSTGRES_USER ??  "admin",
+           process.env.POSTGRES_PASSWORD ??  "postgres",
+           process.env.POSTGRES_DB ?? "default"
         )
     })
 

@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "compile": "tsc -p .",
+    "testi": "npm i -g npm@latest; npm ci; npm run test",
     "test": "mocha -r ts-node/register 'test/**/*.test.ts'"
   },
   "repository": {

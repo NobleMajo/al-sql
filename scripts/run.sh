@@ -3,7 +3,7 @@
 cd ..
 
 docker run -it --rm \
-    --network postgres_net
+    --network postgres_net \
     -e POSTGRES_HOST="postgres-test" \
     -e POSTGRES_PORT="5432" \
     -e POSTGRES_USER="admin" \

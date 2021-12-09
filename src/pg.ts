@@ -52,37 +52,15 @@ export class PostgresSqlDialect implements AbstractSqlDialect {
         ]
     }
 
-    /*
-    export type SqlFieldCondition = [
-        string | [string, IsOrNotOperator] | [string, string, IsOrNotOperator],
-        SqlValue,
-        ...SqlValue[]
-    ]
-    export type SqlRawCondition = {
-        query: string,
-        values: SqlValue[]
+    getTableStructure(
+        table: SqlTable
+    ): ExecutableSqlQuery {
+        return [
+            `select column_name, data_type, character_maximum_length ` +
+            `from INFORMATION_SCHEMA.COLUMNS where table_name = $1`,
+            table.name
+        ]
     }
-    export type SqlConditionMerge = [
-        AndOrOrOperator,
-        SqlCondition,
-        SqlCondition, 
-        ...SqlCondition[]
-    ]
-    
-    export type SqlCondition = SqlConditionMerge | SqlRawCondition | SqlFieldCondition
-    
-    export type SqlResultColumnSelector = (
-        (
-            string
-            |
-            [string, string]
-        )[]
-        |
-        string
-        |
-        null
-    )
-    */
 
     createSqlFieldCondition(
         currentTable: string,

@@ -1,4 +1,5 @@
 import "colors"
+import crypto from "crypto"
 
 export type ColumnType = "SERIAL" | "VARCHAR" | "TEXT" | "LONG" | "INT" | "BOOL" | string
 
@@ -88,6 +89,10 @@ export interface AbstractSqlDialect {
 
     getTablesQuery(
         client: SqlClient
+    ): ExecutableSqlQuery
+
+    getTableStructure(
+        table: SqlTable
     ): ExecutableSqlQuery
 
     createTableQuery(
@@ -268,6 +273,31 @@ export class SqlTable {
         public readonly columns: Column[],
         public readonly foreignKey: ForeignKey[],
     ) {
+    }
+
+    async exist(): Promise<boolean> {
+        return (await this.getStructure()) == undefined
+    }
+
+    async getStructure(): Promise<SqlQueryResultRow | undefined> {
+        return (
+            await this.database.execute(
+                this.database.dialect.getTableStructure(
+                    this
+                )
+            )
+        ).rows.shift() 
+    }
+
+    async getStructureHash(): Promise<string | undefined> {
+        const struct = await this.getStructure()
+        if(!struct){
+return undefined
+        }
+        return crypto
+            .createHash('sha256')
+            .update(JSON.stringify(struct))
+            .digest('hex')
     }
 
     async createTable(): Promise<void> {

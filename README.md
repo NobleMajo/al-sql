@@ -1,13 +1,61 @@
+# table of contents 
+- [table of contents](#table-of-contents)
+- [al-sql](#al-sql)
+- [Features](#features)
+  - [General](#general)
+  - [Sql query types](#sql-query-types)
+  - [Additional](#additional)
+- [Assets](#assets)
+- [Getting started (postgres)](#getting-started-postgres)
+  - [1. Install package](#1-install-package)
+  - [2. Add tables.ts file](#2-add-tablests-file)
+  - [3. Use the table](#3-use-the-table)
+- [Layer Implementation](#layer-implementation)
+  - [AbstractSqlConnection](#abstractsqlconnection)
+  - [AbstractSqlDialect](#abstractsqldialect)
+  - [Postgres connection via 'pg'](#postgres-connection-via-pg)
+- [future features / ideas](#future-features--ideas)
+- [contribution](#contribution)
+
 # al-sql
+
+![uses npm](https://img.shields.io/npm/v/al-sql.svg?style=plastic&logo=npm&color=red)
+![uses typescript](https://img.shields.io/badge/dynamic/json?style=plastic&color=blue&label=Typescript&prefix=v&query=devDependencies.typescript&url=https%3A%2F%2Fraw.githubusercontent.com%2FHalsMaulMajo%2Fal-sql%2Fmain%2Fpackage.json)
+![uses github](https://img.shields.io/badge/dynamic/json?style=plastic&color=darkviolet&label=GitHub&prefix=v&query=version&url=https%3A%2F%2Fraw.githubusercontent.com%2FHalsMaulMajo%2Fal-sql%2Fmain%2Fpackage.json)
+![can't load images](https://img.shields.io/badge/dynamic/json?style=plastic&color=orange&label=UnixTime&query=unixtime&suffix=sec&url=http%3A%2F%2Fworldtimeapi.org%2Fapi%2Ftimezone%2FEtc%2FUTC)
+
+![](https://img.shields.io/badge/dynamic/json?color=darkred&label=open%20issues&query=open_issues&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2FHalsMaulMajo%2Fal-sql)
+![](https://img.shields.io/badge/dynamic/json?color=navy&label=forks&query=forks&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2FHalsMaulMajo%2Fal-sql)
+![](https://img.shields.io/badge/dynamic/json?color=green&label=subscribers&query=subscribers_count&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2FHalsMaulMajo%2Fal-sql)
 
 "al-sql" is a Abstraction_Layer for sql databases to perform simple sql querys.
 
-There is already a working postgres abstraction implementation that you can use for a postgres databases or as base to create a own abstraction implementation.
+You create or use a sql dialect interface and a sql connection interface for your sql database.
+With this you can create a SqlClient instance which provides full controll over a database and its table structure.
+
+There is already a working postgres abstraction implementation that you can use for a postgres databases or as base to create a own abstraction implementation (see [here](#getting-started-postgres)).
 
 # Features
+
+## General
  - Abstract layer between objects and real database
  - One table and function definition for any sql (an nonesql) database
  - Database assets
+
+## Sql query types
+ - create table
+ - drop table
+ - select
+ - update
+ - insert
+ - delete
+
+## Additional
+ - exact or custom where conditions
+ - joins
+ - foreign keys
+
+Also see: [future features](#future-features--ideas)
 
 # Assets
 Example:  
@@ -465,6 +513,12 @@ export class PostgresConnection implements AbstractSqlConnection {
 }
 ```
 
+# future features / ideas
+ - Query caching: caching for the sql query string
+ - Alter Table: edit / adjust tables
+ - Mysql/MariaDB example: a example implementation for the mysql dialect
+ - More examples: more table structure examples
+
 # contribution
  - 1. fork the project
  - 2. implement your idea
@@ -473,5 +527,6 @@ export class PostgresConnection implements AbstractSqlConnection {
 // please create seperated forks for different kind of featues/ideas/structure changes/implementations
 ```
 
-# cya ;3
-##### by HalsMaulMajo
+---
+**cya ;3**  
+*by HalsMaulMajo*

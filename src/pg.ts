@@ -19,7 +19,6 @@ try {
 }
 let Client: Client = pg.Client
 
-import { join } from "path/posix"
 import {
     AbstractSqlConnection, AbstractSqlDialect,
     Column, ExecutableSqlQuery, SqlFieldCondition, SqlJoin,

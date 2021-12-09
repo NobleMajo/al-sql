@@ -100,8 +100,12 @@ export async function getAccountByEmail(
     const result = await accountTable.selectOne( 
         ["id"], // SELECT "id" from "account" LIMIT 1
         { // WHERE email = $1 ("email" is a prepared statement)
-            email: email
+            
         }
+        [
+            "AND",
+          
+        ]
     )
     if (!result || typeof result.id != "number") {
         throw new Error("User with email '" + email + "' not exists!")

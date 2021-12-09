@@ -36,15 +36,31 @@ export interface SqlSetValueMap {
     [key: string]: SqlValue
 }
 
-export interface SqlWhereSelector {
-    [key: string]: SqlValue
-}
+export type OrOperator = "OR"
+export type AndOperator = "AND"
+export type AndOrOrOperator = OrOperator | AndOperator
 
-export interface SqlJoinWhereSelector {
-    [key: string]: SqlValue | {
-        [key: string]: SqlValue
-    }
+export type IsOperator = "IS"
+export type NotOperator = "NOT"
+export type IsOrNotOperator = IsOperator | NotOperator
+
+export type SqlFieldCondition = [
+    string | [string, string] | [string, IsOrNotOperator] | [string, string, IsOrNotOperator],
+    SqlValue,
+    ...SqlValue[]
+]
+export type SqlRawCondition = {
+    query: string,
+    values: SqlValue[]
 }
+export type SqlConditionMerge = [
+    AndOrOrOperator,
+    SqlCondition,
+    SqlCondition,
+    ...SqlCondition[]
+]
+
+export type SqlCondition = SqlConditionMerge | SqlRawCondition | SqlFieldCondition
 
 export type SqlResultColumnSelector = (
     (
@@ -60,6 +76,7 @@ export type SqlResultColumnSelector = (
 
 export interface SqlJoin {
     join?: undefined | "LEFT" | "RIGHT" | "FULL",
+    as?: string,
     sourceTable?: string,
     sourceKey: string
     targetTable: string,
@@ -88,19 +105,19 @@ export interface AbstractSqlDialect {
     updateQuery(
         table: SqlTable,
         set: SqlSetValueMap,
-        where?: SqlWhereSelector,
+        where?: SqlCondition,
         returning?: SqlResultColumnSelector | undefined,
     ): ExecutableSqlQuery
     selectQuery(
         table: SqlTable,
         select?: SqlResultColumnSelector,
-        where?: SqlJoinWhereSelector,
+        where?: SqlCondition,
         join?: number | undefined,
         ...joins: SqlJoin[]
     ): ExecutableSqlQuery
     deleteQuery(
         table: SqlTable,
-        where?: SqlWhereSelector,
+        where?: SqlCondition,
         returning?: SqlResultColumnSelector | undefined,
     ): ExecutableSqlQuery
 }
@@ -123,7 +140,11 @@ export class SqlClient {
     public connectPromise: Promise<void> | undefined
     public closePromise: Promise<void> | undefined
 
-    public readonly querys: ExecutableSqlQuery[] = []
+    private readonly querys: ExecutableSqlQuery[] = []
+
+    shiftQuery(): ExecutableSqlQuery | undefined {
+        return this.querys.shift()
+    }
 
     constructor(
         public readonly connection: AbstractSqlConnection,
@@ -136,14 +157,13 @@ export class SqlClient {
 
     async execute(query: ExecutableSqlQuery): Promise<SqlQueryExecuteResult> {
         if (!await this.connection.isConnected()) {
-            await this.connect() 
-        }
-
-        if (this.listQuery) {
-            this.querys.push(query)
+            await this.connect()
         }
         if (this.queryCallback) {
             this.queryCallback(query, this)
+        }
+        if (this.listQuery) {
+            this.querys.push(query)
         }
         return await this.connection.execute(query).catch((err) => {
             err.message = "Error while execute following query:\n```sql\n" + query[0] + "\n```\n" +
@@ -283,7 +303,7 @@ export class SqlTable {
 
     async update(
         set: SqlSetValueMap,
-        where?: SqlWhereSelector,
+        where?: SqlCondition,
         returning?: SqlResultColumnSelector | undefined,
     ): Promise<SqlQueryResult> {
         return (
@@ -300,7 +320,7 @@ export class SqlTable {
 
     async select(
         select?: SqlResultColumnSelector,
-        where?: SqlJoinWhereSelector,
+        where?: SqlCondition,
         limit?: number | undefined,
         ...joins: SqlJoin[]
     ): Promise<SqlQueryResult> {
@@ -320,7 +340,7 @@ export class SqlTable {
 
     async selectOne(
         select?: SqlResultColumnSelector | undefined,
-        where?: SqlWhereSelector,
+        where?: SqlCondition,
         ...joins: SqlJoin[]
     ): Promise<SqlQueryResultRow | undefined> {
         const rows = await this.select(select, where, 1, ...joins)
@@ -331,7 +351,7 @@ export class SqlTable {
     }
 
     async delete(
-        where?: SqlWhereSelector,
+        where?: SqlCondition,
         returning?: SqlResultColumnSelector | undefined,
     ): Promise<SqlQueryResult> {
         return (
@@ -406,61 +426,94 @@ export function createFillerString(value: string, size: number): string {
     return filler
 }
 
+export function isSqlValue(value: any): boolean {
+    const type = typeof value
+    return value == null || type == "string" || type == "number" || type == "boolean"
+}
+
+export interface PrettyStringOptions {
+    stringFont?: Font,
+    numberFont?: Font,
+    booleanFont?: Font,
+    objectFont?: Font,
+    objectKeyFont?: Font,
+    arrayFont?: Font,
+    nullFont?: Font,
+    undefinedFont?: Font,
+    functionFont?: Font,
+    tabSpaces?: number,
+    level?: number,
+    maxLevel?: number,
+}
+
+export interface PrettyStringSettings {
+    stringFont?: Font,
+    numberFont?: Font,
+    booleanFont?: Font,
+    objectFont?: Font,
+    objectKeyFont?: Font,
+    arrayFont?: Font,
+    nullFont?: Font,
+    undefinedFont?: Font,
+    functionFont?: Font,
+    tabSpaces: number,
+    level: number,
+    maxLevel: number,
+}
+
 export function toPrettyString(
     obj: any,
-    level: number = 0,
-    tabSpaces: number = 4,
-    colorOptions: {
-        stringFont?: Font,
-        numberFont?: Font,
-        booleanFont?: Font,
-        objectFont?: Font,
-        objectKeyFont?: Font,
-        arrayFont?: Font,
-        nullFont?: Font,
-        undefinedFont?: Font,
-        functionFont?: Font,
-    } = {
-            stringFont: ["green", null],
-            numberFont: ["yellow", null],
-            booleanFont: ["blue", null],
-            objectFont: ["gray", null],
-            objectKeyFont: ["white", null],
-            arrayFont: ["gray", null],
-            nullFont: ["magenta", null],
-            undefinedFont: ["magenta", null],
-            functionFont: ["blue", null],
-        },
+    options?: PrettyStringOptions,
 ): string {
+    const settings: PrettyStringSettings = {
+        stringFont: ["green", null],
+        numberFont: ["yellow", null],
+        booleanFont: ["blue", null],
+        objectFont: ["gray", null],
+        objectKeyFont: ["white", null],
+        arrayFont: ["gray", null],
+        nullFont: ["magenta", null],
+        undefinedFont: ["magenta", null],
+        functionFont: ["blue", null],
+        tabSpaces: 4,
+        level: 0,
+        maxLevel: -1,
+        ...options
+    }
     const type = typeof obj
     if (type == "string") {
-        return styleText('"' + obj + '"', colorOptions.stringFont)
+        return styleText('"' + obj + '"', settings.stringFont)
     } else if (type == "number") {
-        return styleText("" + obj, colorOptions.numberFont)
+        return styleText("" + obj, settings.numberFont)
     } else if (type == "boolean") {
-        return styleText(obj == true ? "TRUE" : "FALSE", colorOptions.booleanFont)
+        return styleText(obj == true ? "TRUE" : "FALSE", settings.booleanFont)
     } else if (type == "undefined") {
-        return styleText("UNDEFINED", colorOptions.undefinedFont)
+        return styleText("UNDEFINED", settings.undefinedFont)
     } else if (type == "object") {
         if (obj == null) {
-            return styleText("NULL", colorOptions.nullFont)
+            return styleText("NULL", settings.nullFont)
         } else if (Array.isArray(obj)) {
             let line: string = ""
             if (obj.length == 0) {
-                line += styleText("[]", colorOptions.arrayFont)
+                line += styleText("[]", settings.arrayFont)
+            } else if (settings.maxLevel == settings.level) {
+                line += styleText("[...]", settings.arrayFont)
             } else {
-                line += styleText("[\n" + createFillerString(" ", level * tabSpaces + tabSpaces) + "1. ", colorOptions.arrayFont) +
+                line += styleText("[\n" + createFillerString(" ", settings.level * settings.tabSpaces + settings.tabSpaces) + "1. ", settings.arrayFont) +
                     obj
                         .map(
                             (value: any, index: number) => {
-                                let line = toPrettyString(value, level + 1, tabSpaces, colorOptions)
+                                let line = toPrettyString(value, {
+                                    ...settings,
+                                    level: settings.level + 1
+                                })
                                 if (index < obj.length - 1) {
-                                    line += styleText(",\n" + createFillerString(" ", level * tabSpaces + tabSpaces) + (index + 2) + ". ", colorOptions.arrayFont)
+                                    line += styleText(",\n" + createFillerString(" ", settings.level * settings.tabSpaces + settings.tabSpaces) + (index + 2) + ". ", settings.arrayFont)
                                 }
                                 return line
                             }
                         ).join("") +
-                    styleText("\n" + createFillerString(" ", level * tabSpaces) + "]", colorOptions.arrayFont)
+                    styleText("\n" + createFillerString(" ", settings.level * settings.tabSpaces) + "]", settings.arrayFont)
             }
             return line
         } else {
@@ -472,29 +525,32 @@ export function toPrettyString(
                 obj.constructor.name != "Object"
             ) {
                 line +=
-                    styleText("[", colorOptions.objectFont) +
-                    styleText(obj.constructor.name, colorOptions.objectKeyFont) +
-                    styleText("] ", colorOptions.objectFont)
+                    styleText("[", settings.objectFont) +
+                    styleText(obj.constructor.name, settings.objectKeyFont) +
+                    styleText("] ", settings.objectFont)
             }
             if (Object.keys(obj).length == 0) {
-                line += styleText("{}", colorOptions.arrayFont)
+                line += styleText("{}", settings.arrayFont)
             } else {
-                line += styleText("{\n" + createFillerString(" ", level * tabSpaces + tabSpaces), colorOptions.objectFont) +
+                line += styleText("{\n" + createFillerString(" ", settings.level * settings.tabSpaces + settings.tabSpaces), settings.objectFont) +
                     Object.keys(obj).map(
                         (key: string) =>
-                            styleText(key, colorOptions.objectKeyFont) +
-                            styleText(": ", colorOptions.objectFont) +
-                            toPrettyString(obj[key], level + 1, tabSpaces, colorOptions)
+                            styleText(key, settings.objectKeyFont) +
+                            styleText(": ", settings.objectFont) +
+                            toPrettyString(obj[key], {
+                                ...settings,
+                                level: settings.level + 1
+                            })
                     )
                         .join(
-                            styleText(",\n" + createFillerString(" ", level * tabSpaces + tabSpaces), colorOptions.objectFont)
+                            styleText(",\n" + createFillerString(" ", settings.level * settings.tabSpaces + settings.tabSpaces), settings.objectFont)
                         ) +
-                    styleText("\n" + createFillerString(" ", level * tabSpaces) + "}", colorOptions.objectFont)
+                    styleText("\n" + createFillerString(" ", settings.level * settings.tabSpaces) + "}", settings.objectFont)
             }
             return line
         }
     } else if (type == "function") {
-        return styleText("FUNCTION", colorOptions.booleanFont)
+        return styleText("FUNCTION", settings.booleanFont)
     }
     return "" + obj
 }

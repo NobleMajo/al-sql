@@ -7,25 +7,28 @@ export declare interface Client {
     end(): Promise<void>
 }
 
-let Client: Client
+let pg: any
 try {
-    let pg: any
+    pg = require("pg")
+} catch (error) {
     if (Boolean(process.env.PG_FAKE_CLIENT) === true) {
         pg = require("./fakeClient")
     } else {
-        pg = require("pg")
+        throw new Error("You need to install the 'pg' module to use this postgres implementation!")
     }
-    Client = pg.Client
-} catch (error) {
-    throw new Error("You need to install the 'pg' module to use this progres implementation!")
 }
+let Client: Client = pg.Client
 
+import { join } from "path/posix"
 import {
     AbstractSqlConnection, AbstractSqlDialect,
-    Column, ExecutableSqlQuery, SqlJoin,
-    SqlJoinWhereSelector, SqlQueryExecuteResult, SqlResultColumnSelector,
+    Column, ExecutableSqlQuery, SqlFieldCondition, SqlJoin,
+    SqlQueryExecuteResult, SqlRawCondition, SqlResultColumnSelector,
     SqlSetValueMap, SqlTable,
-    SqlValue, SqlWhereSelector
+    SqlValue,
+    SqlCondition,
+    toPrettyString,
+    SqlConditionMerge
 } from "./index"
 
 export class PostgresSqlDialect implements AbstractSqlDialect {
@@ -49,67 +52,235 @@ export class PostgresSqlDialect implements AbstractSqlDialect {
         ]
     }
 
-    createWhereQuery(
-        where: SqlWhereSelector,
-        i: number,
-    ): ExecutableSqlQuery {
-        let parts: string[] = []
-        const values: SqlValue[] = []
+    /*
+    export type SqlFieldCondition = [
+        string | [string, IsOrNotOperator] | [string, string, IsOrNotOperator],
+        SqlValue,
+        ...SqlValue[]
+    ]
+    export type SqlRawCondition = {
+        query: string,
+        values: SqlValue[]
+    }
+    export type SqlConditionMerge = [
+        AndOrOrOperator,
+        SqlCondition,
+        SqlCondition, 
+        ...SqlCondition[]
+    ]
+    
+    export type SqlCondition = SqlConditionMerge | SqlRawCondition | SqlFieldCondition
+    
+    export type SqlResultColumnSelector = (
+        (
+            string
+            |
+            [string, string]
+        )[]
+        |
+        string
+        |
+        null
+    )
+    */
 
-        Object.keys(where).forEach((key: string) => {
-            const value = where[key]
-            if (key == "_" && typeof value == "string") {
-                values.push(value)
-            } else if (value == null) {
-                parts.push(key + ' IS NULL')
-            } else {
-                parts.push(key + '=$' + i++)
-                values.push(value)
+    createSqlFieldCondition(
+        currentTable: string,
+        condition: SqlFieldCondition,
+        valueCounter: [number]
+    ): ExecutableSqlQuery {
+        if (condition.length < 2) {
+            throw new Error("A sql field condition needs minimum 2 value!")
+        }
+
+        let selectedTable: string = currentTable
+        let selectedField: string
+        let is: boolean = true
+        let values: SqlValue[] = condition.slice(1) as SqlValue[]
+
+        if (values.length == 0) {
+            throw new Error("A sql condition needs minimum 1 value!")
+        }
+
+        if (typeof condition[0] == "string") {
+            selectedField = condition[0]
+        } else if (Array.isArray(condition[0])) {
+            switch (condition[0].length as number) {
+                case 2:
+                    if (condition[0][1].toUpperCase() == "NOT") {
+                        is = false
+                        selectedField = condition[0][0]
+                    } else {
+                        selectedTable = condition[0][0]
+                        selectedField = condition[0][1]
+                    }
+                    break;
+                case 0:
+                case 1:
+                    throw new Error("The first value of a condition needs to be a array with 2-3 values!")
+                default:
+                    selectedTable = condition[0][0]
+                    selectedField = condition[0][1]
+                    if (("" + condition[0][2]).toUpperCase() == "NOT") {
+                        is = false
+                    }
+                    break;
             }
+        } else {
+            throw new Error("The first value of a condition needs to be a array with 2-3 values or a string!")
+        }
+
+        const query: ExecutableSqlQuery = [
+            `${selectedTable}.${selectedField}`
+        ]
+        if (values.length > 1) {
+            values.forEach((value) => query.push(value))
+            let i = valueCounter
+            if (is) {
+                query[0] += " IN ("
+            } else {
+                query[0] += " NOT IN ("
+            }
+            query[0] += values
+                .map(() => "$" + (valueCounter[0]++))
+                .join(", ") + ")"
+        } else {
+            if (values[0] == null) {
+                if (is) {
+                    query[0] += " IS NULL"
+                } else {
+                    query[0] += " IS NOT NULL"
+                }
+            } else {
+                query.push(values[0])
+                if (is) {
+                    query[0] += " = $" + (valueCounter[0]++)
+                } else {
+                    query[0] += " != $" + (valueCounter[0]++)
+                }
+            }
+        }
+        return query
+    }
+
+    createSqlRawCondition(
+        currentTable: string,
+        condition: SqlRawCondition,
+        valueCounter: [number]
+    ): ExecutableSqlQuery {
+        if (typeof condition.query != "string") {
+            throw new Error("The 'query' value of a raw condition is not a string!")
+        } else if (!Array.isArray(condition.values)) {
+            throw new Error("The 'values' vakue of a raw condition is not an array!")
+        }
+        let i: number = 1
+        while (condition.query.includes("$" + i)) {
+            condition.query = condition.query
+                .split("$" + (i++))
+                .join("$" + (valueCounter[0]++))
+        }
+        return [condition.query, ...condition.values]
+    }
+
+    createSqlConditionMerge(
+        currentTable: string,
+        condition: SqlConditionMerge,
+        valueCounter: [number]
+    ): ExecutableSqlQuery {
+        if (condition.length < 3) {
+            throw new Error("A sql condition merge needs minimum 3 value!")
+        }
+
+        const querys: ExecutableSqlQuery[] = []
+        const and: boolean = condition[0].toUpperCase() != "OR"
+        const condition2: SqlCondition[] = condition.slice(1) as SqlCondition[]
+        if (condition.length <= 0) {
+            throw new Error("A sql join where selector needs minimum 1 condition!")
+        }
+        condition2.forEach((condition3) => querys.push(this.createSqlCondition(
+            currentTable,
+            condition3,
+            valueCounter
+        )))
+
+        const conditions: string[] = []
+        const values: SqlValue[] = []
+        querys.forEach((query) => {
+            query.slice(1).forEach((value: SqlValue) => values.push(value))
+            conditions.push(query[0])
         })
 
         return [
-            parts.join(" AND "),
+            "(" + conditions.join(and ? " AND " : " OR ") + ")",
             ...values
         ]
     }
 
-    createJoinWhereQuery(
-        where: SqlJoinWhereSelector,
-        i: number,
-        currentTableName: string,
+    createSqlCondition(
+        currentTable: string,
+        condition: SqlCondition,
+        valueCounter: [number]
     ): ExecutableSqlQuery {
-        const parts: string[] = []
-        const values: SqlValue[] = []
-
-        Object.keys(where).forEach((key: string) => {
-            const value = where[key]
-            if (typeof value == "object" && value != null) {
-                Object.keys(value).forEach((key2: string) => {
-                    const value2 = value[key2]
-                    if (value2 == null) {
-                        parts.push(key + '.' + key2 + ' IS NULL')
-                    } else {
-                        parts.push(key + '.' + key2 + '=$' + i++)
-                        values.push(value[key2])
-                    }
-                })
-            } else {
-                if (key == "_" && typeof value == "string") {
-                    parts.push(value)
-                } else if (value == null) {
-                    parts.push('"' + currentTableName + '".' + key + ' IS NULL')
-                } else {
-                    parts.push('"' + currentTableName + '".' + key + '=$' + i++)
-                    values.push(value)
-                }
-
+        if (Array.isArray(condition)) {
+            if (condition.length < 1) {
+                throw new Error("A sql condition array needs minimum 1 value!")
             }
-        })
-        return [
-            parts.join(" AND "),
-            ...values
-        ]
+            const first = condition[0]
+            if (
+                typeof first == "string" &&
+                (
+                    first == "AND" ||
+                    first == "OR"
+                )
+            ) {
+                return this.createSqlConditionMerge(
+                    currentTable,
+                    condition as SqlConditionMerge,
+                    valueCounter
+                )
+            } else {
+                return this.createSqlFieldCondition(
+                    currentTable,
+                    condition as SqlFieldCondition,
+                    valueCounter
+                )
+            }
+        } else if (typeof condition == "object" || condition != null) {
+            return this.createSqlRawCondition(
+                currentTable,
+                condition as SqlRawCondition,
+                valueCounter
+            )
+        }
+        throw new Error("Unknown where type!")
+    }
+
+    createSqlWhereCondition(
+        currentTable: string,
+        condition: SqlCondition,
+        valueCounter: [number]
+    ): ExecutableSqlQuery {
+        try {
+            return this.createSqlCondition(
+                currentTable,
+                condition,
+                valueCounter
+            )
+        } catch (err: Error | any) {
+            const msgSuffix: string = "\nType of condition is: " +
+                typeof condition +
+                "\nvalue:\n" +
+                toPrettyString(condition, { maxLevel: 2 })
+            if (typeof err == "string") {
+                err += msgSuffix
+            } else if (typeof err.msg == "string") {
+                err.msg += msgSuffix
+            } else if (typeof err.message == "string") {
+                err.message += msgSuffix
+            }
+            throw err
+        }
+
     }
 
     createSelectQuery(
@@ -203,10 +374,10 @@ export class PostgresSqlDialect implements AbstractSqlDialect {
         set: SqlSetValueMap,
         returning?: SqlResultColumnSelector | undefined,
     ): ExecutableSqlQuery {
-        let i: number = 1
+        let i: [number] = [1]
         let line = `INSERT INTO "${table.name}"`
         line += ` (${Object.keys(set).join(", ")})`
-        line += ` VALUES (${Object.keys(set).map(() => "$" + i++).join(", ")})`
+        line += ` VALUES (${Object.keys(set).map(() => "$" + (i[0]++)).join(", ")})`
         if (typeof returning != "undefined") {
             line += ` RETURNING ${this.createSelectQuery(returning)}`
         }
@@ -219,16 +390,15 @@ export class PostgresSqlDialect implements AbstractSqlDialect {
     updateQuery(
         table: SqlTable,
         set: SqlSetValueMap,
-        where?: SqlWhereSelector,
+        where?: SqlCondition,
         returning?: SqlResultColumnSelector | undefined,
     ): ExecutableSqlQuery {
-        let i: number = 1
+        let i: [number] = [1]
         let line = `UPDATE "${table.name}"`
-        line += ` SET ${Object.keys(set).map((k) => k + "=$" + i++).join(", ")}`
+        line += ` SET ${Object.keys(set).map((k) => k + "=$" + (i[0]++)).join(", ")}`
         let values: any[] = []
         if (where && Object.keys(where).length > 0) {
-            const whereData = this.createWhereQuery(where, i)
-            i += whereData.length - 1
+            const whereData = this.createSqlWhereCondition(table.name, where, i)
             line += ` WHERE ${whereData[0]}`
             values = whereData.slice(1)
         }
@@ -245,7 +415,7 @@ export class PostgresSqlDialect implements AbstractSqlDialect {
     selectQuery(
         table: SqlTable,
         select: SqlResultColumnSelector = null,
-        where?: SqlJoinWhereSelector,
+        where?: SqlCondition,
         limit?: number | undefined,
         ...joins: SqlJoin[]
     ): ExecutableSqlQuery {
@@ -253,13 +423,15 @@ export class PostgresSqlDialect implements AbstractSqlDialect {
         line += ` FROM "${table.name}"`
         if (joins && joins.length > 0) {
             joins.forEach((join) => {
-                line += ` ${join.join ?? "INNER"} JOIN "${join.targetTable}"`
-                line += ` ON "${join.targetTable}".${join.targetKey} = "${join.sourceTable ?? table.name}".${join.sourceKey}`
+                const tableName: string = join.as ? join.as : join.targetTable
+                line += ` ${join.join ?? "INNER"} JOIN "${join.targetTable}"${join.as ? " " + join.as : ""}`
+                line += ` ON "${tableName}".${join.targetKey} = "${join.sourceTable ?? table.name}".${join.sourceKey}`
             })
         }
         let values: any[] = []
         if (where && Object.keys(where).length > 0) {
-            const whereData = this.createJoinWhereQuery(where, 1, table.name)
+            let i: [number] = [1]
+            const whereData = this.createSqlWhereCondition(table.name, where, i)
             line += ` WHERE ${whereData[0]}`
             values = whereData.slice(1)
         }
@@ -274,14 +446,15 @@ export class PostgresSqlDialect implements AbstractSqlDialect {
 
     deleteQuery(
         table: SqlTable,
-        where?: SqlWhereSelector,
+        where?: SqlCondition,
         returning?: SqlResultColumnSelector | undefined,
     ): ExecutableSqlQuery {
         let line = `DELETE FROM "${table.name}"`
 
         let values: any[] = []
         if (where && Object.keys(where).length > 0) {
-            const whereData = this.createWhereQuery(where, 1)
+            let i: [number] = [1]
+            const whereData = this.createSqlWhereCondition(table.name, where, i)
             line += ` WHERE ${whereData[0]}`
             values = whereData.slice(1)
         }

@@ -1,16 +1,11 @@
 import { ExecutableSqlQuery } from "./index";
 
 export class Client {
-    constructor(connectInfo: any) { }
-
-    private querys: ExecutableSqlQuery[] = []
-
-    shiftQuery(): ExecutableSqlQuery | undefined {
-        return this.querys.shift()
+    constructor(connectInfo: any) { 
+        console.log("FakeClient created!")
     }
 
     async query(query: string, parameter: any[]): Promise<any> {
-        this.querys.push([query, ...parameter])
         return {
             rows: []
         }

@@ -1,22 +1,3 @@
-# table of contents 
-- [table of contents](#table-of-contents)
-- [al-sql](#al-sql)
-- [Features](#features)
-  - [General](#general)
-  - [Sql query types](#sql-query-types)
-  - [Additional](#additional)
-- [Assets](#assets)
-- [Getting started (postgres)](#getting-started-postgres)
-  - [1. Install package](#1-install-package)
-  - [2. Add tables.ts file](#2-add-tablests-file)
-  - [3. Use the table](#3-use-the-table)
-- [Layer Implementation](#layer-implementation)
-  - [AbstractSqlConnection](#abstractsqlconnection)
-  - [AbstractSqlDialect](#abstractsqldialect)
-  - [Postgres connection via 'pg'](#postgres-connection-via-pg)
-- [future features / ideas](#future-features--ideas)
-- [contribution](#contribution)
-
 # al-sql
 
 ![uses npm](https://img.shields.io/npm/v/al-sql.svg?style=plastic&logo=npm&color=red)
@@ -34,6 +15,26 @@ You create or use a sql dialect interface and a sql connection interface for you
 With this you can create a SqlClient instance which provides full controll over a database and its table structure.
 
 There is already a working postgres abstraction implementation that you can use for a postgres databases or as base to create a own abstraction implementation (see [here](#getting-started-postgres)).
+
+
+# table of contents 
+- [al-sql](#al-sql)
+- [table of contents](#table-of-contents)
+- [Features](#features)
+  - [General](#general)
+  - [Sql query types](#sql-query-types)
+  - [Additional](#additional)
+- [Assets](#assets)
+- [Getting started (postgres)](#getting-started-postgres)
+  - [1. Install package](#1-install-package)
+  - [2. Add tables.ts file](#2-add-tablests-file)
+  - [3. Use the table](#3-use-the-table)
+- [Layer Implementation](#layer-implementation)
+  - [AbstractSqlConnection](#abstractsqlconnection)
+  - [AbstractSqlDialect](#abstractsqldialect)
+  - [Postgres connection via 'pg'](#postgres-connection-via-pg)
+- [future features / ideas](#future-features--ideas)
+- [contribution](#contribution)
 
 # Features
 

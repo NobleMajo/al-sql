@@ -6,7 +6,8 @@
   "scripts": {
     "compile": "tsc -p .",
     "testi": "npm i -g npm@latest; npm ci; npm run test",
-    "test": "mocha -r ts-node/register 'test/**/*.test.ts'"
+    "test": "mocha -r ts-node/register 'test/**/*.test.ts'",
+    "release": "npm run testi; npm run compile; npm publish"
   },
   "repository": {
     "url": "git@github.com:HalsMaulMajo/al-sql.git",

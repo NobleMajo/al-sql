@@ -5,9 +5,9 @@
   "main": "dist/index.js",
   "scripts": {
     "compile": "tsc -p .",
-    "testi": "npm i -g npm@latest; npm ci; npm run test",
+    "testi": "npm up -g npm@latest; npm ci; npm run test",
     "test": "mocha -r ts-node/register 'test/**/*.test.ts'",
-    "release": "npm run testi; npm run compile; npm publish"
+    "release": "npm up -g npm@latest; npm up; npm run compile; npm run test; npm publish"
   },
   "repository": {
     "url": "git@github.com:HalsMaulMajo/al-sql.git",

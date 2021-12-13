@@ -302,7 +302,7 @@ export class PostgresSqlDialect implements AbstractSqlDialect {
         const type = typeof column.default
         if (type != "undefined") {
             line += " DEFAULT "
-            if (type == null) {
+            if (column.default == null) {
                 line += "NULL"
             } else if (type == "boolean") {
                 line += column.default == true ? "TRUE" : "FALSE"

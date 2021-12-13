@@ -1,32 +1,35 @@
 import "mocha"
 import { expect } from 'chai';
-
 import { PostgresConnection } from "../src/pg"
-import { SqlClient, SqlTable } from "../src/index"
+import { showResult, showTable, SqlClient, SqlTable } from "../src/index"
 
-describe('fake client', () => {
-    let con: PostgresConnection
-    let client: SqlClient
+export const con: PostgresConnection = new PostgresConnection(
+    process.env.POSTGRES_HOST ?? "postgres-test",
+    process.env.POSTGRES_PORT ? Number(process.env.POSTGRES_PORT) : 35432,
+    process.env.POSTGRES_USER ?? "admin",
+    process.env.POSTGRES_PASSWORD ?? "postgres",
+    process.env.POSTGRES_DB ?? "default"
+)
+export const client: SqlClient = new SqlClient(
+    con,
+    1000 * 10,
+    true,
+)
 
-    it("create postgres connection", () => {
-        con = new PostgresConnection(
-           process.env.POSTGRES_HOST ?? "localhost",
-           process.env.POSTGRES_PORT ? Number(process.env.POSTGRES_PORT) : 4321,
-           process.env.POSTGRES_USER ??  "admin",
-           process.env.POSTGRES_PASSWORD ??  "postgres",
-           process.env.POSTGRES_DB ?? "default"
-        )
+import { acceptFriendship, createAccount, getFriends, requestFriendship } from "../example/friendship";
+
+describe('client', () => {
+    before('test client connect', async () => {
+        await client.connect()
+            .catch((err) => {
+                delete (con as any).client
+                client.close().catch(() => { })
+                console.error("connection failed: ", con)
+                throw err
+            })
     })
 
-    it("create fake client", () => {
-        client = new SqlClient(
-            con,
-            1000 * 60,
-            true,
-        )
-    })
-
-    it('test fake client connection', async () => {
+    before('test get tables query', async () => {
         const result = await client.getTables()
         if (
             typeof result != "object" ||
@@ -38,6 +41,10 @@ describe('fake client', () => {
         expect(query).is.equals(
             'SELECT * FROM pg_catalog.pg_tables WHERE schemaname != \'pg_catalog\' AND schemaname != \'information_schema\''
         )
+    })
+
+    after('close fake connection', async () => {
+        await client.close()
     })
 
     let accountTable: SqlTable
@@ -228,7 +235,7 @@ describe('fake client', () => {
                 ["ra", "name"],
                 ["sa", "name"],
             ],
-           [["accepted", "NOT"], false],
+            [["accepted", "NOT"], false],
             -1,
             {
                 as: "ra",
@@ -277,7 +284,49 @@ describe('fake client', () => {
         client?.shiftQuery()?.shift()
     })
 
-    it('close fake connection', async () => {
-        await client.close()
+    it('friendship example test', async () => {
+        expect((await accountTable.select(
+            "id"
+        )).length).is.equals(0)
+
+        const tester1Id = await createAccount("tester1", "tester1@testermail.com")
+        const tester2Id = await createAccount("tester2", "tester2@testermail.com")
+        const tester3Id = await createAccount("tester3", "tester3@testermail.com")
+        const tester4Id = await createAccount("tester4", "tester4@testermail.com")
+
+        expect((await accountTable.select(
+            "id"
+        )).length).is.equals(4)
+
+        await Promise.all([
+            requestFriendship(tester1Id, tester2Id),
+            requestFriendship(tester1Id, tester3Id),
+            requestFriendship(tester1Id, tester4Id),
+            requestFriendship(tester3Id, tester2Id),
+            requestFriendship(tester4Id, tester3Id),
+            requestFriendship(tester4Id, tester2Id)
+        ])
+        await Promise.all([
+            acceptFriendship(tester1Id, tester2Id),
+            acceptFriendship(tester1Id, tester3Id),
+            acceptFriendship(tester3Id, tester2Id),
+            acceptFriendship(tester4Id, tester2Id)
+        ]);
+
+        expect((await friendshipTable.select(
+            "id"
+        )).length).is.equals(6)
+        expect((await friendshipTable.select(
+            "id",
+            ["accepted", true]
+        )).length).is.equals(4)
+        expect((await friendshipTable.select(
+            "id",
+            ["accepted", false]
+        )).length).is.equals(2)
+        expect((await getFriends(tester1Id)).length).is.equals(2)
+        expect((await getFriends(tester2Id)).length).is.equals(3)
+        expect((await getFriends(tester3Id)).length).is.equals(2)
+        expect((await getFriends(tester4Id)).length).is.equals(1)
     })
 })

@@ -1,15 +1,10 @@
-import { SqlClient } from "../src/index"
-import { PostgresConnection } from "../src/pg"
+import { SqlClient, SqlQueryResult } from "../src/index"
+import * as test from "../test/index.test"
 
-export const client = new SqlClient(
-    new PostgresConnection(
-        process.env.POSTGRES_HOST,
-        Number(process.env.POSTGRES_PORT),
-        process.env.POSTGRES_USER,
-        process.env.POSTGRES_PASSWORD,
-        process.env.POSTGRES_DB
-    )
-)
+if (!test.client) {
+    throw new Error("SqlClient 'client' in 'test/index.test.ts' is not set!")
+}
+const client: SqlClient = test.client
 
 // user table example:
 export const accountTable = client.getTable(
@@ -84,9 +79,8 @@ export async function getAccountByName(
 ): Promise<number> {
     const result = await accountTable.selectOne(
         ["id"], // SELECT "id" FROM "account" LIMIT 1
-        { // WHERE name = $1 ("name" is a prepared statement)
-            name: name
-        }
+        // WHERE name = $1 ("name" is a prepared statement)
+        ["name", name]
     )
     if (!result || typeof result.id != "number") {
         throw new Error("User with name '" + name + "' not exists!")
@@ -97,15 +91,10 @@ export async function getAccountByName(
 export async function getAccountByEmail(
     email: string
 ): Promise<number> {
-    const result = await accountTable.selectOne( 
+    const result = await accountTable.selectOne(
         ["id"], // SELECT "id" from "account" LIMIT 1
-        { // WHERE email = $1 ("email" is a prepared statement)
-            
-        }
-        [
-            "AND",
-          
-        ]
+        // WHERE email = $1 ("email" is a prepared statement)
+        ["email", email]
     )
     if (!result || typeof result.id != "number") {
         throw new Error("User with email '" + email + "' not exists!")
@@ -150,58 +139,43 @@ export async function acceptFriendship(
         { // UPDATE SET accepted = $1
             accepted: true
         },
-        { // WHERE sender_id = $1 AND receiver_id = $2
-            sender_id: senderId,
-            receiver_id: receiverId
-        }
+        [ // WHERE sender_id = $1 AND receiver_id = $2
+            "AND",
+            ["sender_id", senderId],
+            ["receiver_id", receiverId]
+        ]
     )
 }
 
 export async function getFriends(
     user: number
-): Promise<number[]> {
-    const result = await Promise.all([
-        friendshipTable.select(
-            [ // SELECT "friendship".sender_id from "friendship"
-                ["friendship", "sender_id"],
-            ],
-            { // WHERE receiver_id = $1
-                receiver_id: user,
-            },
-        ),
-        friendshipTable.select(
-            [ // SELECT "friendship".receiver_id from "friendship"
-                ["friendship", "receiver_id"],
-            ],
-            { // WHERE sender_id = $1
-                sender_id: user,
-            }
-        )
-    ])
-    // merge results together
-    const friends: number[] = []
-    result[0].forEach((f) => friends.push(f.sender_id as number))
-    result[1].forEach((f) => friends.push(f.receiver_id as number))
-
-    return friends
+): Promise<SqlQueryResult> {
+    return await friendshipTable.select(
+        [ // SELECT sender_id, receiver_id from "friendship"
+            "sender_id",
+            "receiver_id"
+        ],
+        [ // WHERE accepted = $1 AND (sender_id = $2 OR receiver_id = $3)
+            "AND",
+            ["accepted", true],
+            [
+                "OR",
+                ["sender_id", user],
+                ["receiver_id", user]
+            ]
+        ]
+    )
 }
 
 export async function removeFriendship(
     user1: number,
     user2: number
 ): Promise<void> {
-    await Promise.all([
-        friendshipTable.delete(
-            { // DELETE FROM "friendship" WHERE sender_id = $1 AND receiver_id = $2
-                sender_id: user1,
-                receiver_id: user2
-            }
-        ),
-        friendshipTable.delete(
-            { // DELETE FROM "friendship" WHERE sender_id = $1 AND receiver_id = $2
-                sender_id: user2,
-                receiver_id: user1
-            }
-        )
-    ])
+    await friendshipTable.delete(
+        [ // WHERE sender_id = $1 OR receiver_id = $2 
+            "OR",
+            ["sender_id", user1],
+            ["receiver_id", user2]
+        ]
+    )
 }

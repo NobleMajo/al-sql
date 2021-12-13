@@ -1,7 +1,7 @@
 import "mocha"
 import { expect } from 'chai';
 import { PostgresConnection } from "../src/pg"
-import { showResult, showTable, SqlClient, SqlTable } from "../src/index"
+import { SqlClient, SqlTable } from "../src/index"
 
 export const con: PostgresConnection = new PostgresConnection(
     process.env.POSTGRES_HOST ?? "postgres-test",

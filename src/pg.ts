@@ -108,7 +108,7 @@ export class PostgresSqlDialect implements AbstractSqlDialect {
         }
 
         const query: ExecutableSqlQuery = [
-            `${selectedTable}.${selectedField}`
+            `"${selectedTable}".${selectedField}`
         ]
         if (values.length > 1) {
             values.forEach((value) => query.push(value))

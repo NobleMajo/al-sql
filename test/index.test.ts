@@ -16,7 +16,7 @@ export const client: SqlClient = new SqlClient(
     true,
 )
 
-import { acceptFriendship, createAccount, getFriends, requestFriendship } from "../example/friendship";
+import { acceptFriendship, accountTable, createAccount, friendshipTable, getFriends, requestFriendship } from "../example/friendship";
 
 describe('client', () => {
     before('test client connect', async () => {
@@ -47,10 +47,10 @@ describe('client', () => {
         await client.close()
     })
 
-    let accountTable: SqlTable
+    let userTable: SqlTable
     it('create account test table', async () => {
-        accountTable = client.getTable(
-            "account",
+        userTable = client.getTable(
+            "user",
             [
                 {
                     name: "id",
@@ -74,17 +74,17 @@ describe('client', () => {
                 },
             ]
         )
-        await accountTable.createTable()
+        await userTable.createTable()
         const query = client?.shiftQuery()?.shift()
         expect(query).is.equals(
-            'CREATE TABLE IF NOT EXISTS "account"(id SERIAL PRIMARY KEY NOT NULL, name VARCHAR(32) UNIQUE NOT NULL, email VARCHAR(128) UNIQUE NOT NULL)'
+            'CREATE TABLE IF NOT EXISTS "user"(id SERIAL PRIMARY KEY NOT NULL, name VARCHAR(32) UNIQUE NOT NULL, email VARCHAR(128) UNIQUE NOT NULL)'
         )
     })
 
-    let friendshipTable: SqlTable
+    let friendstateTable: SqlTable
     it('create friendship test table', async () => {
-        friendshipTable = client.getTable(
-            "friendship",
+        friendstateTable = client.getTable(
+            "friendstate",
             [ // column example:
                 {
                     name: "id",
@@ -113,19 +113,19 @@ describe('client', () => {
                 {
                     columnName: "sender_id",
                     foreignColumnName: "id",
-                    foreignTableName: "account"
+                    foreignTableName: "user"
                 },
                 {
                     columnName: "receiver_id",
                     foreignColumnName: "id",
-                    foreignTableName: "account"
+                    foreignTableName: "user"
                 }
             ]
         )
-        await friendshipTable.createTable()
+        await friendstateTable.createTable()
         const query = client?.shiftQuery()?.shift()
         expect(query).is.equals(
-            'CREATE TABLE IF NOT EXISTS "friendship"(id SERIAL PRIMARY KEY NOT NULL, sender_id INT NOT NULL, receiver_id INT NOT NULL, accepted BOOL NOT NULL DEFAULT FALSE, FOREIGN KEY(sender_id) REFERENCES "account" (id) ON DELETE CASCADE, FOREIGN KEY(receiver_id) REFERENCES "account" (id) ON DELETE CASCADE)'
+            'CREATE TABLE IF NOT EXISTS "friendstate"(id SERIAL PRIMARY KEY NOT NULL, sender_id INT NOT NULL, receiver_id INT NOT NULL, accepted BOOL NOT NULL DEFAULT FALSE, FOREIGN KEY(sender_id) REFERENCES "user" (id) ON DELETE CASCADE, FOREIGN KEY(receiver_id) REFERENCES "user" (id) ON DELETE CASCADE)'
         )
     })
 
@@ -133,31 +133,31 @@ describe('client', () => {
         let query
         let result
 
-        result = await accountTable.insert({
+        result = await userTable.insert({
             name: "tester",
             email: "tester@tester.com"
         })
         query = client?.shiftQuery()?.shift()
         expect(query).is.equals(
-            'INSERT INTO "account" (name, email) VALUES ($1, $2)'
+            'INSERT INTO "user" (name, email) VALUES ($1, $2)'
         )
 
-        result = await accountTable.insert({
+        result = await userTable.insert({
             name: "majo",
             email: "halsmaulmajo@coreunit.net"
         })
         query = client?.shiftQuery()?.shift()
         expect(query).is.equals(
-            'INSERT INTO "account" (name, email) VALUES ($1, $2)'
+            'INSERT INTO "user" (name, email) VALUES ($1, $2)'
         )
 
-        result = await friendshipTable.insert({
+        result = await friendstateTable.insert({
             sender_id: 1,
             receiver_id: 2
         })
         query = client?.shiftQuery()?.shift()
         expect(query).is.equals(
-            'INSERT INTO "friendship" (sender_id, receiver_id) VALUES ($1, $2)'
+            'INSERT INTO "friendstate" (sender_id, receiver_id) VALUES ($1, $2)'
         )
     })
 
@@ -165,24 +165,24 @@ describe('client', () => {
         let query
         let result
 
-        result = await accountTable.select(
+        result = await userTable.select(
             ["name"]
         )
         query = client?.shiftQuery()?.shift()
         expect(query).is.equals(
-            'SELECT "name" FROM "account"'
+            'SELECT "name" FROM "user"'
         )
 
-        result = await accountTable.select(
+        result = await userTable.selectOne(
             ["id"],
             ["name", "tester"]
         )
         query = client?.shiftQuery()?.shift()
         expect(query).is.equals(
-            'SELECT "id" FROM "account" WHERE account.name = $1'
+            'SELECT "id" FROM "user" WHERE "user".name = $1 LIMIT 1'
         )
 
-        result = await friendshipTable.select(
+        result = await friendstateTable.select(
             [
                 ["ra", "name"],
                 ["sa", "name"],
@@ -200,22 +200,22 @@ describe('client', () => {
             {
                 as: "ra",
                 sourceKey: "receiver_id",
-                targetTable: "account",
+                targetTable: "user",
                 targetKey: "id"
             },
             {
                 as: "sa",
                 sourceKey: "sender_id",
-                targetTable: "account",
+                targetTable: "user",
                 targetKey: "id"
             },
         )
         query = client?.shiftQuery()?.shift()
         expect(query).is.equals(
-            'SELECT "ra"."name", "sa"."name" FROM "friendship" INNER JOIN "account" ra ON "ra".id = "friendship".receiver_id INNER JOIN "account" sa ON "sa".id = "friendship".sender_id WHERE (friendship.accepted != $1 AND (friendship.receiver_id = $2 OR friendship.sender_id = $3))'
+            'SELECT "ra"."name", "sa"."name" FROM "friendstate" INNER JOIN "user" ra ON "ra".id = "friendstate".receiver_id INNER JOIN "user" sa ON "sa".id = "friendstate".sender_id WHERE ("friendstate".accepted != $1 AND ("friendstate".receiver_id = $2 OR "friendstate".sender_id = $3))'
         )
 
-        result = await friendshipTable.update(
+        result = await friendstateTable.update(
             {
                 "accepted": true
             },
@@ -227,10 +227,10 @@ describe('client', () => {
         )
         query = client?.shiftQuery()?.shift()
         expect(query).is.equals(
-            'UPDATE "friendship" SET accepted=$1 WHERE (friendship.receiver_id = $2 OR friendship.sender_id = $3)'
+            'UPDATE "friendstate" SET accepted=$1 WHERE ("friendstate".receiver_id = $2 OR "friendstate".sender_id = $3)'
         )
 
-        result = await friendshipTable.select(
+        result = await friendstateTable.select(
             [
                 ["ra", "name"],
                 ["sa", "name"],
@@ -240,19 +240,19 @@ describe('client', () => {
             {
                 as: "ra",
                 sourceKey: "receiver_id",
-                targetTable: "account",
+                targetTable: "user",
                 targetKey: "id"
             },
             {
                 as: "sa",
                 sourceKey: "sender_id",
-                targetTable: "account",
+                targetTable: "user",
                 targetKey: "id"
             },
         )
         query = client?.shiftQuery()?.shift()
         expect(query).is.equals(
-            'SELECT "ra"."name", "sa"."name" FROM "friendship" INNER JOIN "account" ra ON "ra".id = "friendship".receiver_id INNER JOIN "account" sa ON "sa".id = "friendship".sender_id WHERE friendship.accepted != $1'
+            'SELECT "ra"."name", "sa"."name" FROM "friendstate" INNER JOIN "user" ra ON "ra".id = "friendstate".receiver_id INNER JOIN "user" sa ON "sa".id = "friendstate".sender_id WHERE "friendstate".accepted != $1'
         )
     })
 
@@ -263,41 +263,69 @@ describe('client', () => {
         query = client?.shiftQuery()?.shift()
 
         expect(query).is.equals(
-            'DROP TABLE IF EXISTS "friendship" CASCADE'
+            'DROP TABLE IF EXISTS "friendstate" CASCADE'
         )
         query = client?.shiftQuery()?.shift()
 
         expect(query).is.equals(
-            'DROP TABLE IF EXISTS "account" CASCADE'
+            'DROP TABLE IF EXISTS "user" CASCADE'
         )
     })
 
     it('recreate tables', async () => {
         await client.createAllTables()
-        client?.shiftQuery()?.shift()
-        client?.shiftQuery()?.shift()
+        client?.shiftQuery()
+        client?.shiftQuery()
     })
 
     it('insert test data', async () => {
         await client.createAllTables()
-        client?.shiftQuery()?.shift()
-        client?.shiftQuery()?.shift()
+        client?.shiftQuery()
+        client?.shiftQuery()
     })
 
-    it('friendship example test', async () => {
+    it('drop all tables', async () => {
+        await client.dropAllTables()
+        client?.shiftQuery()
+        client?.shiftQuery()
+    })
+
+    it('friendship example create account', async () => {
+        await accountTable.createTable()
+        client?.shiftQuery()
+
         expect((await accountTable.select(
             "id"
         )).length).is.equals(0)
+    })
 
-        const tester1Id = await createAccount("tester1", "tester1@testermail.com")
-        const tester2Id = await createAccount("tester2", "tester2@testermail.com")
-        const tester3Id = await createAccount("tester3", "tester3@testermail.com")
-        const tester4Id = await createAccount("tester4", "tester4@testermail.com")
+    let tester1Id: number
+    let tester2Id: number
+    let tester3Id: number
+    let tester4Id: number
+
+    it('friendship example fill account', async () => {
+        tester1Id = await createAccount("tester1", "tester1@testermail.com")
+        tester2Id = await createAccount("tester2", "tester2@testermail.com")
+        tester3Id = await createAccount("tester3", "tester3@testermail.com")
+        tester4Id = await createAccount("tester4", "tester4@testermail.com")
 
         expect((await accountTable.select(
             "id"
         )).length).is.equals(4)
 
+        expect(typeof tester1Id).is.equals("number")
+        expect(typeof tester4Id).is.equals("number")
+    })
+
+    it('friendship example create friendship', async () => {
+        await friendshipTable.createTable()
+        expect((await friendshipTable.select(
+            "id"
+        )).length).is.equals(0)
+    })
+
+    it('friendship example fill friendship', async () => {
         await Promise.all([
             requestFriendship(tester1Id, tester2Id),
             requestFriendship(tester1Id, tester3Id),
@@ -316,6 +344,9 @@ describe('client', () => {
         expect((await friendshipTable.select(
             "id"
         )).length).is.equals(6)
+    })
+
+    it('friendship example check friendship', async () => {
         expect((await friendshipTable.select(
             "id",
             ["accepted", true]

@@ -65,9 +65,10 @@ export type SqlCondition = SqlConditionMerge | SqlRawCondition | SqlFieldConditi
 
 export type SqlResultColumnSelector = (
     (
-        string
-        |
-        [string, string]
+        string        |
+        [string]|
+        [string, string]|
+        [string, string, string]
     )[]
     |
     string

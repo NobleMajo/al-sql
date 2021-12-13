@@ -273,8 +273,17 @@ export class PostgresSqlDialect implements AbstractSqlDialect {
                 (s) => {
                     if (typeof s == "string") {
                         return '"' + s + '"'
+                    } else if (!Array.isArray(s)) {
+                        throw new Error("A select option needs to be a string or string array!")
                     }
-                    return `"${s[0]}"."${s[1]}"`
+                    if(s.length == 3){
+                        return `"${s[0]}"."${s[1]}" AS "${s[2]}"`
+                    }else if(s.length == 2){
+                        return `"${s[0]}"."${s[1]}"`
+                    }else {
+                        return `"${s[0]}"`
+                    }
+                    
                 }
             ).join(", ")
         } else {

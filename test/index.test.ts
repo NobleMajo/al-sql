@@ -232,8 +232,8 @@ describe('client', () => {
 
         result = await friendstateTable.select(
             [
-                ["ra", "name"],
-                ["sa", "name"],
+                ["ra", "name", "rname"],
+                ["sa", "name", "sname"],
             ],
             [["accepted", "NOT"], false],
             -1,
@@ -252,7 +252,7 @@ describe('client', () => {
         )
         query = client?.shiftQuery()?.shift()
         expect(query).is.equals(
-            'SELECT "ra"."name", "sa"."name" FROM "friendstate" INNER JOIN "user" ra ON "ra".id = "friendstate".receiver_id INNER JOIN "user" sa ON "sa".id = "friendstate".sender_id WHERE "friendstate".accepted != $1'
+            `SELECT "ra"."name" AS "rname", "sa"."name" AS "sname" FROM "friendstate" INNER JOIN "user" ra ON "ra".id = "friendstate".receiver_id INNER JOIN "user" sa ON "sa".id = "friendstate".sender_id WHERE "friendstate".accepted != $1`
         )
     })
 

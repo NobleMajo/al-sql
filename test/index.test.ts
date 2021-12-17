@@ -37,14 +37,18 @@ describe('client', () => {
         ) {
             throw new Error("Result is not a rows object!")
         }
-        const query = client?.shiftQuery()?.shift()
-        expect(query).is.equals(
+        const query = client.querys.shift() ?? [""]
+        expect(query[0]).is.equals(
             'SELECT * FROM pg_catalog.pg_tables WHERE schemaname != \'pg_catalog\' AND schemaname != \'information_schema\''
         )
     })
 
     after('close fake connection', async () => {
         await client.close()
+    })
+
+    beforeEach(() => {
+        client.clearQueryList()
     })
 
     let userTable: SqlTable
@@ -75,8 +79,8 @@ describe('client', () => {
             ]
         )
         await userTable.createTable()
-        const query = client?.shiftQuery()?.shift()
-        expect(query).is.equals(
+        const query = client.querys.shift() ?? [""]
+        expect(query[0]).is.equals(
             'CREATE TABLE IF NOT EXISTS "user"(id SERIAL PRIMARY KEY NOT NULL, name VARCHAR(32) UNIQUE NOT NULL, email VARCHAR(128) UNIQUE NOT NULL)'
         )
     })
@@ -123,8 +127,8 @@ describe('client', () => {
             ]
         )
         await friendstateTable.createTable()
-        const query = client?.shiftQuery()?.shift()
-        expect(query).is.equals(
+        const query = client.querys.shift() ?? [""]
+        expect(query[0]).is.equals(
             'CREATE TABLE IF NOT EXISTS "friendstate"(id SERIAL PRIMARY KEY NOT NULL, sender_id INT NOT NULL, receiver_id INT NOT NULL, accepted BOOL NOT NULL DEFAULT FALSE, FOREIGN KEY(sender_id) REFERENCES "user" (id) ON DELETE CASCADE, FOREIGN KEY(receiver_id) REFERENCES "user" (id) ON DELETE CASCADE)'
         )
     })
@@ -137,8 +141,8 @@ describe('client', () => {
             name: "tester",
             email: "tester@tester.com"
         })
-        query = client?.shiftQuery()?.shift()
-        expect(query).is.equals(
+        query = client.querys.shift() ?? [""]
+        expect(query[0]).is.equals(
             'INSERT INTO "user" (name, email) VALUES ($1, $2)'
         )
 
@@ -146,8 +150,8 @@ describe('client', () => {
             name: "majo",
             email: "halsmaulmajo@coreunit.net"
         })
-        query = client?.shiftQuery()?.shift()
-        expect(query).is.equals(
+        query = client.querys.shift() ?? [""]
+        expect(query[0]).is.equals(
             'INSERT INTO "user" (name, email) VALUES ($1, $2)'
         )
 
@@ -155,8 +159,8 @@ describe('client', () => {
             sender_id: 1,
             receiver_id: 2
         })
-        query = client?.shiftQuery()?.shift()
-        expect(query).is.equals(
+        query = client.querys.shift() ?? [""]
+        expect(query[0]).is.equals(
             'INSERT INTO "friendstate" (sender_id, receiver_id) VALUES ($1, $2)'
         )
     })
@@ -168,8 +172,8 @@ describe('client', () => {
         result = await userTable.select(
             ["name"]
         )
-        query = client?.shiftQuery()?.shift()
-        expect(query).is.equals(
+        query = client.querys.shift() ?? [""]
+        expect(query[0]).is.equals(
             'SELECT "name" FROM "user"'
         )
 
@@ -177,8 +181,8 @@ describe('client', () => {
             ["id"],
             ["name", "tester"]
         )
-        query = client?.shiftQuery()?.shift()
-        expect(query).is.equals(
+        query = client.querys.shift() ?? [""]
+        expect(query[0]).is.equals(
             'SELECT "id" FROM "user" WHERE "user".name = $1 LIMIT 1'
         )
 
@@ -210,8 +214,8 @@ describe('client', () => {
                 targetKey: "id"
             },
         )
-        query = client?.shiftQuery()?.shift()
-        expect(query).is.equals(
+        query = client.querys.shift() ?? [""]
+        expect(query[0]).is.equals(
             'SELECT "ra"."name", "sa"."name" FROM "friendstate" INNER JOIN "user" ra ON "ra".id = "friendstate".receiver_id INNER JOIN "user" sa ON "sa".id = "friendstate".sender_id WHERE ("friendstate".accepted != $1 AND ("friendstate".receiver_id = $2 OR "friendstate".sender_id = $3))'
         )
 
@@ -225,8 +229,8 @@ describe('client', () => {
                 ["sender_id", 1]
             ]
         )
-        query = client?.shiftQuery()?.shift()
-        expect(query).is.equals(
+        query = client.querys.shift() ?? [""]
+        expect(query[0]).is.equals(
             'UPDATE "friendstate" SET accepted=$1 WHERE ("friendstate".receiver_id = $2 OR "friendstate".sender_id = $3)'
         )
 
@@ -250,8 +254,8 @@ describe('client', () => {
                 targetKey: "id"
             },
         )
-        query = client?.shiftQuery()?.shift()
-        expect(query).is.equals(
+        query = client.querys.shift() ?? [""]
+        expect(query[0]).is.equals(
             `SELECT "ra"."name" AS "rname", "sa"."name" AS "sname" FROM "friendstate" INNER JOIN "user" ra ON "ra".id = "friendstate".receiver_id INNER JOIN "user" sa ON "sa".id = "friendstate".sender_id WHERE "friendstate".accepted != $1`
         )
     })
@@ -260,39 +264,85 @@ describe('client', () => {
         await client.dropAllTables()
 
         let query
-        query = client?.shiftQuery()?.shift()
 
-        expect(query).is.equals(
+        query = client.querys.shift() ?? [""]
+        expect(query[0]).is.equals(
             'DROP TABLE IF EXISTS "friendstate" CASCADE'
         )
-        query = client?.shiftQuery()?.shift()
 
-        expect(query).is.equals(
+        query = client.querys.shift() ?? [""]
+        expect(query[0]).is.equals(
             'DROP TABLE IF EXISTS "user" CASCADE'
+        )
+
+        query = client.querys.shift() ?? [""]
+        query = client.querys.shift() ?? [""]
+    })
+
+    it('close connection 1', async () => {
+        let query
+
+        await client.close()
+
+        await userTable.dropTable()
+        query = client.querys.shift() ?? [""]
+        expect(query[0]).is.equals(
+            'DROP TABLE IF EXISTS "user" CASCADE'
+        )
+    })
+
+    it('close connection 2', async () => {
+        let query
+
+        await client.close()
+        await client.connect()
+
+        await friendstateTable.dropTable()
+        query = client.querys.shift() ?? [""]
+        expect(query[0]).is.equals(
+            'DROP TABLE IF EXISTS "friendstate" CASCADE'
+        )
+    })
+
+    it('close connection 3', async () => {
+        let query
+
+        await client.close()
+
+        await friendshipTable.dropTable()
+        query = client.querys.shift() ?? [""]
+        expect(query[0]).is.equals(
+            'DROP TABLE IF EXISTS "friendship" CASCADE'
+        )
+    })
+
+    it('close connection 4', async () => {
+        let query
+
+        await client.close()
+        await client.connect()
+
+        await accountTable.dropTable()
+        query = client.querys.shift() ?? [""]
+        expect(query[0]).is.equals(
+            'DROP TABLE IF EXISTS "account" CASCADE'
         )
     })
 
     it('recreate tables', async () => {
         await client.createAllTables()
-        client?.shiftQuery()
-        client?.shiftQuery()
     })
 
     it('insert test data', async () => {
         await client.createAllTables()
-        client?.shiftQuery()
-        client?.shiftQuery()
     })
 
     it('drop all tables', async () => {
         await client.dropAllTables()
-        client?.shiftQuery()
-        client?.shiftQuery()
     })
 
     it('friendship example create account', async () => {
         await accountTable.createTable()
-        client?.shiftQuery()
 
         expect((await accountTable.select(
             "id"
@@ -319,6 +369,7 @@ describe('client', () => {
     })
 
     it('friendship example create friendship', async () => {
+
         await friendshipTable.createTable()
         expect((await friendshipTable.select(
             "id"

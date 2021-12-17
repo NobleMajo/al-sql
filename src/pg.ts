@@ -456,9 +456,8 @@ export class PostgresSqlDialect implements AbstractSqlDialect {
 }
 
 export class PostgresConnection implements AbstractSqlConnection {
-    public readonly client: Client
+    private client: Client | undefined = undefined
     public readonly dialect: PostgresSqlDialect
-    public connected: boolean = false
 
     constructor(
         public readonly host: string,
@@ -467,13 +466,6 @@ export class PostgresConnection implements AbstractSqlConnection {
         public readonly password: string,
         public readonly database: string
     ) {
-        this.client = new Client({
-            host: host,
-            port: port,
-            user: username,
-            password: password,
-            database: database
-        })
         this.dialect = new PostgresSqlDialect()
     }
 
@@ -482,6 +474,9 @@ export class PostgresConnection implements AbstractSqlConnection {
     }
 
     execute(query: ExecutableSqlQuery): Promise<SqlQueryExecuteResult> {
+        if (!this.client) {
+            throw new Error("Cannot execute a query if the client is not connected!")
+        }
         return this.client.query(
             query[0],
             query.slice(1)
@@ -489,18 +484,34 @@ export class PostgresConnection implements AbstractSqlConnection {
     }
 
     async isConnected(): Promise<boolean> {
-        return this.connected
+        return this.client != undefined
     }
 
-    connect(): Promise<void> {
-        return this.client.connect().then(() => {
-            this.connected = true
+    async connect(): Promise<void> {
+        if (this.client) {
+            return
+        }
+        this.client = new Client({
+            host: this.host,
+            port: this.port,
+            user: this.username,
+            password: this.password,
+            database: this.database
         })
+        return this.client.connect()
+            .catch((err) => {
+                this.client = undefined
+                throw err
+            })
     }
 
-    close(): Promise<void> {
-        return this.client.end().then(() => {
-            this.connected = false
-        })
+    async close(): Promise<void> {
+        if (!this.client) {
+            return
+        }
+        return this.client.end()
+            .finally(() => {
+                this.client = undefined
+            })
     }
 }

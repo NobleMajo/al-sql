@@ -170,10 +170,12 @@ export class SqlClient {
     public connectPromise: Promise<void> | undefined
     public closePromise: Promise<void> | undefined
 
-    private readonly querys: ExecutableSqlQuery[] = []
+    public readonly querys: ExecutableSqlQuery[] = []
 
-    shiftQuery(): ExecutableSqlQuery | undefined {
-        return this.querys.shift()
+    public clearQueryList(): void {
+        while (this.querys.length) {
+            this.querys.shift()
+        }
     }
 
     constructor(
@@ -186,6 +188,12 @@ export class SqlClient {
     }
 
     async execute(query: ExecutableSqlQuery): Promise<SqlQueryExecuteResult> {
+        if (this.closePromise) {
+            await this.closePromise
+        }
+        if (this.connectPromise) {
+            await this.connectPromise
+        }
         if (!await this.connection.isConnected()) {
             await this.connect()
         }
@@ -195,13 +203,17 @@ export class SqlClient {
         if (this.listQuery) {
             this.querys.push(query)
         }
-        return await this.connection.execute(query).catch((err) => {
-            err.message = "Error while execute following query:\n```sql\n" + query[0] + "\n```\n" +
-
+        const ret = await this.connection.execute(query).catch((err) => {
+            err.message = "Error while execute following query:\n```sql\n" +
+                query[0] +
+                "\n```\n" +
                 err.message
-
             throw err
         })
+        if (this.connectionTime < 1) {
+            await this.close()
+        }
+        return ret
     }
 
     async connect(): Promise<void> {
@@ -214,16 +226,15 @@ export class SqlClient {
         if (this.closeTimeout) {
             clearTimeout(this.closeTimeout)
         }
-        this.closeTimeout = setTimeout(
-            async () => {
-                await this.close().catch(() => { })
-                this.closeTimeout = undefined
-            },
-            this.connectionTime
-        )
-        return this.connectPromise = this.connection.connect().then(() => {
-            this.connectPromise = undefined
-        })
+        if (this.connectionTime < 1) {
+            this.closeTimeout = setTimeout(
+                () => this.close(),
+                this.connectionTime
+            )
+        }
+        this.connectPromise = this.connection.connect()
+        await this.connectPromise
+        this.connectPromise = undefined
     }
 
     async close(): Promise<void> {
@@ -235,10 +246,11 @@ export class SqlClient {
         }
         if (this.closeTimeout) {
             clearTimeout(this.closeTimeout)
+            this.closeTimeout = undefined
         }
-        return this.closePromise = this.connection.close().then(() => {
-            this.closePromise = undefined
-        })
+        this.closePromise = this.connection.close()
+        await this.closePromise
+        this.closePromise = undefined
     }
 
     private tables: SqlTable[] = []

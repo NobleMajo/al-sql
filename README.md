@@ -12,10 +12,9 @@
 "al-sql" is a Abstraction_Layer for sql databases to perform simple sql querys.
 
 You create or use a sql dialect interface and a sql connection interface for your sql database.
-With this you can create a SqlClient instance which provides full controll over a database and its table structure.
+With this you can create a SqlClient instance that provides control over a database and its table structure.
 
 There is already a working postgres abstraction implementation that you can use for a postgres databases or as base to create a own abstraction implementation (see [here](#getting-started-postgres)).
-
 
 # table of contents 
 - [al-sql](#al-sql)

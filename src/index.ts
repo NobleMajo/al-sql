@@ -1,5 +1,5 @@
 import "colors"
-import crypto from "crypto"
+import * as crypto from "crypto"
 
 export type ColumnType = "SERIAL" | "VARCHAR" | "TEXT" | "LONG" | "INT" | "BOOL" | string
 
@@ -286,13 +286,13 @@ export class SqlTable {
                     this
                 )
             )
-        ).rows.shift() 
+        ).rows.shift()
     }
 
     async getStructureHash(): Promise<string | undefined> {
         const struct = await this.getStructure()
-        if(!struct){
-return undefined
+        if (!struct) {
+            return undefined
         }
         return crypto
             .createHash('sha256')

@@ -4,10 +4,18 @@
   "description": "Abstraction_Layer-Sql is a sql abstraction layer that can be used for every sql database to perform simple querys.",
   "main": "dist/index.js",
   "scripts": {
-    "compile": "tsc -p .",
-    "testi": "npm up -g npm@latest; npm ci; npm run test",
-    "test": "mocha -r ts-node/register 'test/**/*.test.ts'",
-    "release": "npm up -g npm@latest; npm up; npm run compile; npm run test; npm publish"
+    "compile": "tsc -p tsconfig.json",
+    "tstest": "mocha -r ts-node/register 'src/test/**/*.test.ts'",
+    "test": "mocha 'dist/test/**/*.test.js'",
+    "build": "npm run compile",
+    "dev": "nodemon -w \"$(pwd)/src/**/*\" -x \"npm run build; npm run test\"",
+    "tsdev": "nodemon --ext \"*.ts\" -w \"$(pwd)/src/**/*\" -x \"npm run tstest\"",
+    "test-watch": "nodemon -w \"$(pwd)/dist/**/*\" -x \"npm run test\"",
+    "build-watch": "nodemon --ext \"*.ts\" -w \"$(pwd)/src/**/*\" -x \"npm run build\"",
+    "win:dev": "nodemon -w \"./src/**/*\" -x \"npm run build & npm run test\"",
+    "win:tsdev": "nodemon --ext \"*.ts\" -w \"./src/**/*\" -x \"npm run tstest\"",
+    "win:test-watch": "nodemon -w \"./dist/**/*\" -x \"npm run test\"",
+    "win:build-watch": "nodemon --ext \"*.ts\" -w \"./src/**/*\" -x \"npm run build\""
   },
   "repository": {
     "url": "git@github.com:HalsMaulMajo/al-sql.git",

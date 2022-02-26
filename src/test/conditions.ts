@@ -1,4 +1,4 @@
-import { SqlCondition } from "../src/index";
+import { SqlCondition } from "../index";
 
 const some: SqlCondition = [
     "OR",

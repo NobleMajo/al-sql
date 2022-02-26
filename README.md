@@ -3,23 +3,15 @@
 ![uses npm](https://img.shields.io/npm/v/al-sql.svg?style=plastic&logo=npm&color=red)
 ![uses typescript](https://img.shields.io/badge/dynamic/json?style=plastic&color=blue&label=Typescript&prefix=v&query=devDependencies.typescript&url=https%3A%2F%2Fraw.githubusercontent.com%2FHalsMaulMajo%2Fal-sql%2Fmain%2Fpackage.json)
 ![uses github](https://img.shields.io/badge/dynamic/json?style=plastic&color=darkviolet&label=GitHub&prefix=v&query=version&url=https%3A%2F%2Fraw.githubusercontent.com%2FHalsMaulMajo%2Fal-sql%2Fmain%2Fpackage.json)
-![can't load images](https://img.shields.io/badge/dynamic/json?style=plastic&color=orange&label=UnixTime&query=unixtime&suffix=sec&url=http%3A%2F%2Fworldtimeapi.org%2Fapi%2Ftimezone%2FEtc%2FUTC)
 
 ![](https://img.shields.io/badge/dynamic/json?color=darkred&label=open%20issues&query=open_issues&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2FHalsMaulMajo%2Fal-sql)
 ![](https://img.shields.io/badge/dynamic/json?color=navy&label=forks&query=forks&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2FHalsMaulMajo%2Fal-sql)
 ![](https://img.shields.io/badge/dynamic/json?color=green&label=subscribers&query=subscribers_count&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2FHalsMaulMajo%2Fal-sql)
 
-"al-sql" is a Abstraction_Layer for sql databases to perform simple sql querys.
-
-You create or use a sql dialect interface and a sql connection interface for your sql database.
-With this you can create a SqlClient instance which provides full controll over a database and its table structure.
-
-There is already a working postgres abstraction implementation that you can use for a postgres databases or as base to create a own abstraction implementation (see [here](#getting-started-postgres)).
-
-
-# table of contents 
+# table of contents
 - [al-sql](#al-sql)
 - [table of contents](#table-of-contents)
+- [about](#about)
 - [Features](#features)
   - [General](#general)
   - [Sql query types](#sql-query-types)
@@ -35,6 +27,14 @@ There is already a working postgres abstraction implementation that you can use 
   - [Postgres connection via 'pg'](#postgres-connection-via-pg)
 - [future features / ideas](#future-features--ideas)
 - [contribution](#contribution)
+
+# about
+"al-sql" is a Abstraction_Layer for sql databases to perform simple sql querys.
+
+You create or use a sql dialect interface and a sql connection interface for your sql database.
+With this you can create a SqlClient instance which provides full controll over a database and its table structure.
+
+There is already a working postgres abstraction implementation that you can use for a postgres databases or as base to create a own abstraction implementation (see [here](#getting-started-postgres)).
 
 # Features
 

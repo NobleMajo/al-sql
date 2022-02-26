@@ -1,4 +1,4 @@
-import { SqlClient, SqlQueryResult } from "../src/index"
+import { SqlClient, SqlQueryResult } from "../index"
 import * as test from "../test/index.test"
 
 if (!test.client) {

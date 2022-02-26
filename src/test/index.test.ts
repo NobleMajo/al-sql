@@ -1,35 +1,34 @@
 import "mocha"
-import { expect } from 'chai';
-import { PostgresConnection } from "../src/pg"
-import { showResult, showTable, SqlClient, SqlTable } from "../src/index"
+import { expect } from 'chai'
+import "../fakeClient"
+import { PostgresConnection } from "../pg"
+import { SqlClient, SqlTable } from "../index"
 
-export const con: PostgresConnection = new PostgresConnection(
-    process.env.POSTGRES_HOST ?? "postgres-test",
-    process.env.POSTGRES_PORT ? Number(process.env.POSTGRES_PORT) : 35432,
-    process.env.POSTGRES_USER ?? "admin",
-    process.env.POSTGRES_PASSWORD ?? "postgres",
-    process.env.POSTGRES_DB ?? "default"
-)
 export const client: SqlClient = new SqlClient(
-    con,
+    new PostgresConnection("", 0, "", "", ""),
     1000 * 10,
     true,
 )
 
-import { acceptFriendship, accountTable, createAccount, friendshipTable, getFriends, requestFriendship } from "../example/friendship";
+import {
+    acceptFriendship,
+    accountTable,
+    createAccount,
+    friendshipTable,
+    getFriends,
+    requestFriendship
+} from "./friendship"
 
 describe('client', () => {
-    before('test client connect', async () => {
+    before('test get tables query', async () => {
         await client.connect()
-            .catch((err) => {
-                delete (con as any).client
-                client.close().catch(() => { })
-                console.error("connection failed: ", con)
-                throw err
-            })
     })
 
-    before('test get tables query', async () => {
+    after('close fake connection', async () => {
+        await client.close()
+    })
+
+    it('test get tables query', async () => {
         const result = await client.getTables()
         if (
             typeof result != "object" ||
@@ -41,10 +40,6 @@ describe('client', () => {
         expect(query).is.equals(
             'SELECT * FROM pg_catalog.pg_tables WHERE schemaname != \'pg_catalog\' AND schemaname != \'information_schema\''
         )
-    })
-
-    after('close fake connection', async () => {
-        await client.close()
     })
 
     let userTable: SqlTable
@@ -339,7 +334,7 @@ describe('client', () => {
             acceptFriendship(tester1Id, tester3Id),
             acceptFriendship(tester3Id, tester2Id),
             acceptFriendship(tester4Id, tester2Id)
-        ]);
+        ])
 
         expect((await friendshipTable.select(
             "id"

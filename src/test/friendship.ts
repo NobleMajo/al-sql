@@ -1,5 +1,5 @@
 import { SqlClient, SqlQueryResult } from "../index"
-import * as test from "../test/index.test"
+import * as test from "./query.test"
 
 if (!test.client) {
     throw new Error("SqlClient 'client' in 'test/index.test.ts' is not set!")

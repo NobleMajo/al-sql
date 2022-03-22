@@ -8,21 +8,31 @@ export declare interface Client {
 }
 
 let pg: any
-try {
-    pg = require("pg")
-} catch (error) {
-    if (Boolean(process.env.PG_FAKE_CLIENT) === true) {
-        pg = require("./fakeClient")
-    } else {
-        throw new Error("You need to install the 'pg' module to use this postgres implementation!")
+if (Boolean(process.env.PG_FAKE_CLIENT) === true) {
+    pg = require("./fakeClient")
+} else {
+    try {
+        pg = require("pg")
+    } catch (error) {
+        throw new Error(
+            "You need to install the 'pg' module to use this postgres implementation!\n" +
+            "You can also set the 'PG_FAKE_CLIENT' environment variable to 'true' for tests."
+        )
     }
 }
+
 let Client: Client = pg.Client
 
 import {
-    AbstractSqlConnection, AbstractSqlDialect,
-    Column, ExecutableSqlQuery, SqlFieldCondition, SqlJoin,
-    SqlQueryExecuteResult, SqlRawCondition, SqlResultColumnSelector,
+    AbstractSqlConnection,
+    AbstractSqlDialect,
+    Column,
+    ExecutableSqlQuery,
+    SqlFieldCondition,
+    SqlJoin,
+    SqlQueryExecuteResult,
+    SqlRawCondition,
+    SqlResultColumnSelector,
     SqlSetValueMap, SqlTable,
     SqlValue,
     SqlCondition,

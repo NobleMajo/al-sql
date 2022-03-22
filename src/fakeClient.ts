@@ -3,6 +3,22 @@ export interface QueryData {
     params: any[],
 }
 
+export function useFakeClient(): boolean {
+    return Boolean(process.env.PG_FAKE_CLIENT) == true
+}
+
+export function setDefaultFakeClientValue(use: boolean): void {
+    if (
+        typeof process.env.PG_FAKE_CLIENT != "string" ||
+        (
+            process.env.PG_FAKE_CLIENT.toLowerCase() != "true" &&
+            process.env.PG_FAKE_CLIENT.toLowerCase() != "false"
+        )
+    ) {
+        process.env.PG_FAKE_CLIENT = "" + use
+    }
+}
+
 export class Client {
     constructor() {
         console.log("FakeClient created!")
@@ -35,6 +51,3 @@ export class Client {
 
     async end(): Promise<void> { }
 }
-
-
-process.env.PG_FAKE_CLIENT = "TRUE"

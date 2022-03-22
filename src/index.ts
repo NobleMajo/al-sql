@@ -151,6 +151,14 @@ export class SqlClient {
         return this.querys.shift()
     }
 
+    clearQuerys(): ExecutableSqlQuery[] {
+        let querys: ExecutableSqlQuery[] = []
+        while (this.querys.length > 0) {
+            querys.push(this.querys.shift())
+        }
+        return querys
+    }
+
     constructor(
         public readonly connection: AbstractSqlConnection,
         public connectionTime: number = 1000 * 45,

@@ -137,7 +137,7 @@ describe('query generation test', () => {
 
         result = await userTable.insert({
             name: "majo",
-            email: "halsmaulmajo@coreunit.net"
+            email: "majo@coreunit.net"
         })
         query = client?.shiftQuery()?.shift()
         expect(query).is.equals(

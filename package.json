@@ -23,10 +23,10 @@
     "exec": "node dist/index.js",
     "test": "mocha --require ts-node/register src/test/**/*.test.ts",
     "build": "npm run tsc",
-    "start:watch": "nodemon -w ./src/**/* -x 'npm run start' --ext *.ts",
-    "build:watch": "nodemon -w ./src/**/* -x 'npm run build' --ext *.ts",
-    "test:watch": "nodemon -w ./src/**/* -x 'npm run test' --ext *.ts",
-    "exec:watch": "nodemon -w ./dist/**/* -x 'npm run exec'",
+    "start:watch": "nodemon -w ./src -x \"npm run start\" --ext *.ts",
+    "build:watch": "nodemon -w ./src -x \"npm run build\" --ext *.ts",
+    "test:watch": "nodemon -w ./src -x \"npm run test\" --ext *.ts",
+    "exec:watch": "nodemon -w ./dist -x \"npm run exec\"",
     "dev": "npm run start:watch"
   },
   "devDependencies": {

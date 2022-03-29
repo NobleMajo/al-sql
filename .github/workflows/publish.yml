@@ -15,19 +15,17 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 16
-        cache: 'npm'
-        cache-dependency-path: 'package-lock.json'
-        registry-url: https://registry.npmjs.org/
+        #cache: 'npm'
+        #cache-dependency-path: 'package-lock.json'
+        #registry-url: https://registry.npmjs.org/
     - run: npm i -g npm@latest
     - run: npm ci
     - run: npm run build
     - run: npm test
-
-    - run: npm config set registry https://registry.npmjs.org/
+    - run: npm config set registry https://registry.npmjs.org
     - run: npm publish
       env:
         NODE_AUTH_TOKEN: ${{ SECRETS.NPM_TOKEN }}
-
     - run: npm pkg set "name=@{{ GITHUB.REPOSITORY }}"
     - run: npm config set registry https://npm.pkg.github.com
     - run: npm publish

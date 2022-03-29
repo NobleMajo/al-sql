@@ -1,5 +1,8 @@
 *
+!bin
+!package-lock.json
 !package.json
-!dist/**/*
 !README.md
 !LICENCE
+!dist/**/*
+dist/test/**/*

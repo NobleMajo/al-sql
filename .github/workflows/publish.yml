@@ -22,12 +22,16 @@ jobs:
     - run: npm ci
     - run: npm run build
     - run: npm test
-    - run: npm config set registry https://registry.npmjs.org
-    - run: npm publish
-      env:
-        NODE_AUTH_TOKEN: ${{ SECRETS.NPM_TOKEN }}
+    - id: npmjs.org npm publish
+      uses: JS-DevTools/npm-publish@v1
+      with:
+        token: ${{ secrets.NPM_TOKEN }}
+        registry: https://registry.npmjs.org
+        access: public
     - run: npm pkg set "name=@{{ GITHUB.REPOSITORY }}"
-    - run: npm config set registry https://npm.pkg.github.com
-    - run: npm publish
-      env:
-        NODE_AUTH_TOKEN: ${{ GITHUB.TOKEN }}
+    - id: github.com npm publish
+      uses: JS-DevTools/npm-publish@v1
+      with:
+        token: ${{ SECRETS.NPM_TOKEN }}
+        registry: https://npm.pkg.github.com
+        access: public

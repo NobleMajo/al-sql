@@ -22,14 +22,14 @@ jobs:
     - run: npm ci
     - run: npm run build
     - run: npm test
-    - id: npmjs.org npm publish
+    - name: npmjs.org npm publish
       uses: JS-DevTools/npm-publish@v1
       with:
         token: ${{ secrets.NPM_TOKEN }}
         registry: https://registry.npmjs.org
         access: public
     - run: npm pkg set "name=@{{ GITHUB.REPOSITORY }}"
-    - id: github.com npm publish
+    - name: github.com npm publish
       uses: JS-DevTools/npm-publish@v1
       with:
         token: ${{ SECRETS.NPM_TOKEN }}

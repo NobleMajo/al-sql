@@ -27,11 +27,9 @@ jobs:
     - run: npm publish
       env:
         NODE_AUTH_TOKEN: ${{ SECRETS.NPM_TOKEN }}
-    - run: npm config delete registry
 
-    - run: npm pkg set "name=@{{ GITHUB.REPOSITORY }}:registry=https://npm.pkg.github.com/"
+    - run: npm pkg set "name=@{{ GITHUB.REPOSITORY }}"
     - run: npm config set registry https://npm.pkg.github.com
     - run: npm publish
       env:
         NODE_AUTH_TOKEN: ${{ GITHUB.TOKEN }}
-    - run: npm config delete registry

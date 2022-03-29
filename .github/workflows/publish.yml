@@ -28,7 +28,7 @@ jobs:
         token: ${{ secrets.NPM_TOKEN }}
         registry: https://registry.npmjs.org
         access: public
-    - run: npm pkg set "name=@{{ GITHUB.REPOSITORY }}"
+    - run: npm pkg set "name=@${{ GITHUB.REPOSITORY }}"
     - name: github.com npm publish
       uses: JS-DevTools/npm-publish@v1
       with:

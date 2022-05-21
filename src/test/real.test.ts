@@ -22,7 +22,7 @@ import {
     requestFriendship
 } from "./friendship"
 
-useFakeClient() && console.log(
+useFakeClient() && console.info(
     `If you want to run test with a real postgres database set the 'PG_FAKE_CLIENT' environment variable to 'false'!
     The test database needs to be reachable over localhost:5432 with username, password and database 'test'.`
 )

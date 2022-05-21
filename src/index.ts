@@ -808,7 +808,7 @@ export interface RowResult {
 
 export type SelectResult = RowResult[]
 
-export function showResult(
+export function generateResultString(
     title: string,
     result: SqlQueryResultRow[],
     maxValueSize: number = 16,
@@ -822,7 +822,7 @@ export function showResult(
         ["blue", null],
         ["green", null]
     ]
-): void {
+): string {
     const paint = (text: string, font?: Font): string => {
         if (font) {
             font = mixFonts(font, defaultFont)
@@ -894,7 +894,6 @@ export function showResult(
             preSpace += " "
             i++
         }
-        preSpace = paint(preSpace + "\n", [null, null, "underline"])
-        console.log(preSpace + msg)
+        return paint(preSpace + "\n", [null, null, "underline"]) + msg
     }
 }

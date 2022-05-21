@@ -21,7 +21,7 @@ export function setDefaultFakeClientValue(use: boolean): void {
 
 export class Client {
     constructor() {
-        console.log("FakeClient created!")
+        console.info("FakeClient created!")
     }
 
     querys: QueryData[] = []

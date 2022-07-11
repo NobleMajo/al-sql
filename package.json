@@ -1,7 +1,7 @@
 {
   "name": "al-sql",
   "description": "Abstraction_Layer-Structured_Query_Language is a sql abstraction layer that can be used for every sql database to perform DML and simple DLL querys.",
-  "version": "1.1.11",
+  "version": "1.1.12",
   "main": "dist/index.js",
   "author": "majo418",
   "license": "MIT",

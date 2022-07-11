@@ -1,80 +1,89 @@
-import { SqlClient, SqlQueryResult } from "../index"
-import * as test from "./query.test"
+import { SqlClient, SqlQueryResult, SqlTable } from '../index';
 
-if (!test.client) {
-    throw new Error("SqlClient 'client' in 'test/index.test.ts' is not set!")
+export interface FriendshipTables {
+    accountTable: SqlTable,
+    friendshipTable: SqlTable,
 }
-const client: SqlClient = test.client
 
-// user table example:
-export const accountTable = client.getTable(
-    "account",
-    [ // column example:
-        {
-            name: "id",
-            type: "SERIAL",
-            primaryKey: true,
-            nullable: false,
-        },
-        {
-            name: "name",
-            type: "VARCHAR",
-            unique: true,
-            nullable: false,
-            size: 32,
-        },
-        {
-            name: "email",
-            type: "VARCHAR",
-            unique: true,
-            nullable: false,
-            size: 128,
-        },
-    ]
-)
+export function createFriendshipTables(
+    client: SqlClient
+): FriendshipTables {
+    // user table example:
+    const accountTable = client.getTable(
+        "account",
+        [ // column example:
+            {
+                name: "id",
+                type: "SERIAL",
+                primaryKey: true,
+                nullable: false,
+            },
+            {
+                name: "name",
+                type: "VARCHAR",
+                unique: true,
+                nullable: false,
+                size: 32,
+            },
+            {
+                name: "email",
+                type: "VARCHAR",
+                unique: true,
+                nullable: false,
+                size: 128,
+            },
+        ]
+    )
 
-// friendship example:
-export const friendshipTable = client.getTable(
-    "friendship",
-    [ // column example:
-        {
-            name: "id",
-            type: "SERIAL",
-            primaryKey: true,
-            nullable: false,
-        },
-        {
-            name: "sender_id",
-            type: "INT",
-            nullable: false,
-        },
-        {
-            name: "receiver_id",
-            type: "INT",
-            nullable: false,
-        },
-        {
-            name: "accepted",
-            type: "BOOL",
-            nullable: false,
-            default: false,
-        },
-    ],
-    [// foreign keys example:
-        {
-            columnName: "sender_id",
-            foreignColumnName: "id",
-            foreignTableName: "account"
-        },
-        {
-            columnName: "receiver_id",
-            foreignColumnName: "id",
-            foreignTableName: "account"
-        }
-    ]
-)
+    // friendship example:
+    const friendshipTable = client.getTable(
+        "friendship",
+        [ // column example:
+            {
+                name: "id",
+                type: "SERIAL",
+                primaryKey: true,
+                nullable: false,
+            },
+            {
+                name: "sender_id",
+                type: "INT",
+                nullable: false,
+            },
+            {
+                name: "receiver_id",
+                type: "INT",
+                nullable: false,
+            },
+            {
+                name: "accepted",
+                type: "BOOL",
+                nullable: false,
+                default: false,
+            },
+        ],
+        [// foreign keys example:
+            {
+                columnName: "sender_id",
+                foreignColumnName: "id",
+                foreignTableName: "account"
+            },
+            {
+                columnName: "receiver_id",
+                foreignColumnName: "id",
+                foreignTableName: "account"
+            }
+        ]
+    )
+
+    return {
+        accountTable,
+        friendshipTable,
+    }
+}
 
 export async function getAccountByName(
+    accountTable: SqlTable,
     name: string
 ): Promise<number> {
     const result = await accountTable.selectOne(
@@ -89,6 +98,7 @@ export async function getAccountByName(
 }
 
 export async function getAccountByEmail(
+    accountTable: SqlTable,
     email: string
 ): Promise<number> {
     const result = await accountTable.selectOne(
@@ -103,6 +113,7 @@ export async function getAccountByEmail(
 }
 
 export async function createAccount(
+    accountTable: SqlTable,
     name: string,
     email: string
 ): Promise<number> {
@@ -120,10 +131,11 @@ export async function createAccount(
 }
 
 export async function requestFriendship(
+    friendshipTable: SqlTable,
     senderId: number,
     receiverId: number
 ): Promise<void> {
-    await removeFriendship(senderId, receiverId)
+    await removeFriendship(friendshipTable, senderId, receiverId)
 
     await friendshipTable.insert({ // INSERT INTO "friendship" (sender_id, receiver_id) VALUES ($1, $2)
         sender_id: senderId,
@@ -132,6 +144,7 @@ export async function requestFriendship(
 }
 
 export async function acceptFriendship(
+    friendshipTable: SqlTable,
     senderId: number,
     receiverId: number
 ): Promise<void> {
@@ -148,6 +161,7 @@ export async function acceptFriendship(
 }
 
 export async function getFriends(
+    friendshipTable: SqlTable,
     user: number
 ): Promise<SqlQueryResult> {
     return await friendshipTable.select(
@@ -168,6 +182,7 @@ export async function getFriends(
 }
 
 export async function removeFriendship(
+    friendshipTable: SqlTable,
     user1: number,
     user2: number
 ): Promise<void> {

@@ -1,8 +1,21 @@
+# global ignore
 *
+
+# exe scripts
 !bin
+
+# npm configs
 !package-lock.json
 !package.json
+
+# project infos
 !README.md
 !LICENCE
+
+# dist
 !dist/**/*
+dist/**/*.d.ts.map
+dist/**/*.js.map
+
+# tests
 dist/test/**/*

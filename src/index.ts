@@ -141,7 +141,6 @@ export class SqlClient {
     public readonly dialect: AbstractSqlDialect
     public closeTimeout: NodeJS.Timeout | undefined = undefined
 
-    public connected: boolean = false
     public connectPromise: Promise<void> | undefined
     public closePromise: Promise<void> | undefined
 
@@ -204,6 +203,10 @@ export class SqlClient {
             },
             this.connectionTime
         )
+        if (await this.connection.isConnected()) {
+            return
+        }
+
         return this.connectPromise = this.connection.connect().then(() => {
             this.connectPromise = undefined
         })
@@ -218,6 +221,9 @@ export class SqlClient {
         }
         if (this.closeTimeout) {
             clearTimeout(this.closeTimeout)
+        }
+        if (!(await this.connection.isConnected())) {
+            return
         }
         return this.closePromise = this.connection.close().then(() => {
             this.closePromise = undefined
@@ -791,7 +797,7 @@ export async function showTable(
     ]
 ): Promise<void> {
     const rows = await table.select()
-    showResult(
+    console.info(generateResultString(
         table.name,
         rows,
         maxValueSize,
@@ -799,7 +805,7 @@ export async function showTable(
         titleFont,
         columeFont,
         fontOrder
-    )
+    ))
 }
 
 export interface RowResult {

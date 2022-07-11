@@ -1,14 +1,7 @@
-
-export declare interface Client {
-    new(connectInfo: any): Client
-
-    query(query: string, parameter: any[]): Promise<any>
-    connect(): Promise<void>
-    end(): Promise<void>
-}
+import { useFakeClient } from "./fakeClient"
 
 let pg: any
-if (Boolean(process.env.PG_FAKE_CLIENT) === true) {
+if (useFakeClient()) {
     pg = require("./fakeClient")
 } else {
     try {
@@ -21,7 +14,8 @@ if (Boolean(process.env.PG_FAKE_CLIENT) === true) {
     }
 }
 
-let Client: Client = pg.Client
+import { Client } from "pg"
+let PgClient = pg.Client as typeof Client
 
 import {
     AbstractSqlConnection,
@@ -457,7 +451,7 @@ export class PostgresSqlDialect implements AbstractSqlDialect {
 }
 
 export class PostgresConnection implements AbstractSqlConnection {
-    public readonly client: Client
+    public client: Client
     public readonly dialect: PostgresSqlDialect
     public connected: boolean = false
 
@@ -468,13 +462,6 @@ export class PostgresConnection implements AbstractSqlConnection {
         public readonly password: string,
         public readonly database: string
     ) {
-        this.client = new Client({
-            host: host,
-            port: port,
-            user: username,
-            password: password,
-            database: database
-        })
         this.dialect = new PostgresSqlDialect()
     }
 
@@ -494,6 +481,13 @@ export class PostgresConnection implements AbstractSqlConnection {
     }
 
     connect(): Promise<void> {
+        this.client = new PgClient({
+            host: this.host,
+            port: this.port,
+            user: this.username,
+            password: this.password,
+            database: this.database,
+        })
         return this.client.connect().then(() => {
             this.connected = true
         })

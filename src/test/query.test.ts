@@ -1,14 +1,10 @@
 import "mocha"
 import { expect } from 'chai'
-
-import { setDefaultFakeClientValue } from '../fakeClient';
-setDefaultFakeClientValue(false)
-
 import { PostgresConnection } from "../pg"
 import { SqlClient, SqlTable } from "../index"
 
 export const client: SqlClient = new SqlClient(
-    new PostgresConnection("", 0, "", "", ""),
+    new PostgresConnection("127.0.0.1", 5432, "test", "test", "test"),
     1000 * 10,
     true,
 )

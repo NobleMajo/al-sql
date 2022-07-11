@@ -4,19 +4,7 @@ export interface QueryData {
 }
 
 export function useFakeClient(): boolean {
-    return Boolean(process.env.PG_FAKE_CLIENT) == true
-}
-
-export function setDefaultFakeClientValue(use: boolean): void {
-    if (
-        typeof process.env.PG_FAKE_CLIENT != "string" ||
-        (
-            process.env.PG_FAKE_CLIENT.toLowerCase() != "true" &&
-            process.env.PG_FAKE_CLIENT.toLowerCase() != "false"
-        )
-    ) {
-        process.env.PG_FAKE_CLIENT = "" + use
-    }
+    return (process.env.PG_FAKE_CLIENT ?? "").toLowerCase() != "false"
 }
 
 export class Client {

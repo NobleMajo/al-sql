@@ -1,6 +1,49 @@
+# app data
 .store
-node_modules
-dist
 
+# mac
+.DS_Store
+
+# windows
+Thumbs.db
+
+# vscode
+**/.vscode
+
+# codec
+core
+
+# npm
+**/node_modules
+**/.npmrc
+**/.npm
+
+# Log files
+**/logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# apps
+*.app
+*.exe
+*.war
+
+# media files
+*.mp4
+*.tiff
+*.avi
+*.flv
+*.mov
+*.wmv
+
+# typescript
+dist
+src
+!src/**/*.ts
+
+# git
 !.keep
 !.gitkeep

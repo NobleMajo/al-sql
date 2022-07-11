@@ -4,7 +4,7 @@ export interface QueryData {
 }
 
 export function useFakeClient(): boolean {
-    return (process.env.PG_FAKE_CLIENT ?? "").toLowerCase() != "false"
+    return (process.env.PG_FAKE_CLIENT ?? "").toLowerCase() == "true"
 }
 
 export class Client {

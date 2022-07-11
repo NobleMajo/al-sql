@@ -1,5 +1,13 @@
 import "mocha"
 import { expect } from 'chai'
+
+if (
+    typeof process.env.PG_FAKE_CLIENT != "string" ||
+    process.env.PG_FAKE_CLIENT.length == 0
+) {
+    process.env.PG_FAKE_CLIENT = "true"
+}
+
 import { useFakeClient } from '../fakeClient';
 import { PostgresConnection } from "../pg"
 import { SqlClient } from "../index"

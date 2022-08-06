@@ -30,18 +30,18 @@
     "dev": "npm run start:watch"
   },
   "devDependencies": {
-    "@types/chai": "^4",
-    "@types/mocha": "^9",
-    "@types/node": "^16",
-    "@types/pg": "^8",
-    "chai": "^4",
-    "mocha": "^9",
-    "nodemon": "^2",
-    "pg": "^8",
-    "ts-node": "^10",
-    "typescript": "^4"
+    "@types/chai": "4",
+    "@types/mocha": "9",
+    "@types/node": "16",
+    "@types/pg": "8",
+    "chai": "4",
+    "mocha": "9",
+    "nodemon": "2",
+    "pg": "8",
+    "ts-node": "10",
+    "typescript": "4"
   },
   "dependencies": {
-    "colors": "^1"
+    "colors": "1"
   }
 }

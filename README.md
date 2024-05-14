@@ -16,10 +16,6 @@
 - [al-sql](#al-sql)
 - [table of contents](#table-of-contents)
 - [about](#about)
-- [Features](#features)
-  - [General](#general)
-  - [Sql query types](#sql-query-types)
-  - [Additional](#additional)
 - [Assets](#assets)
 - [Getting started (postgres)](#getting-started-postgres)
   - [1. Install package](#1-install-package)
@@ -29,7 +25,6 @@
   - [AbstractSqlConnection](#abstractsqlconnection)
   - [AbstractSqlDialect](#abstractsqldialect)
   - [Postgres connection via 'pg'](#postgres-connection-via-pg)
-- [future features / ideas](#future-features--ideas)
 - [npm scripts](#npm-scripts)
   - [use](#use)
   - [base scripts](#base-scripts)
@@ -43,28 +38,6 @@ You create or use a sql dialect interface and a sql connection interface for you
 With this you can create a SqlClient instance which provides full controll over a database and its table structure.
 
 There is already a working postgres abstraction implementation that you can use for a postgres databases or as base to create a own abstraction implementation (see [here](#getting-started-postgres)).
-
-# Features
-
-## General
- - Abstract layer between objects and real database
- - One table and function definition for any sql (an nonesql) database
- - Database assets
-
-## Sql query types
- - create table
- - drop table
- - select
- - update
- - insert
- - delete
-
-## Additional
- - exact or custom where conditions
- - joins
- - foreign keys
-
-Also see: [future features](#future-features--ideas)
 
 # Assets
 Example:  
@@ -521,12 +494,6 @@ export class PostgresConnection implements AbstractSqlConnection {
     }
 }
 ```
-
-# future features / ideas
- - Query caching: caching for the sql query string
- - Alter Table: edit / adjust tables
- - Mysql/MariaDB example: a example implementation for the mysql dialect
- - More examples: more table structure examples
 
 # npm scripts
 The npm scripts are made for linux but can also work on mac and windows.

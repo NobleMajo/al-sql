@@ -1,16 +1,16 @@
 # al-sql
 
-![CI/CD](https://github.com/majo418/al-sql/workflows/Publish/badge.svg)
+![CI/CD](https://github.com/noblemajo/al-sql/actions/workflows/npm-publish.yml/badge.svg)
 ![MIT](https://img.shields.io/badge/license-MIT-blue.svg)
-![typescript](https://img.shields.io/badge/dynamic/json?style=plastic&color=blue&label=Typescript&prefix=v&query=devDependencies.typescript&url=https%3A%2F%2Fraw.githubusercontent.com%2Fmajo418%2Fal-sql%2Fmain%2Fpackage.json)
+![typescript](https://img.shields.io/badge/dynamic/json?style=plastic&color=blue&label=Typescript&prefix=v&query=devDependencies.typescript&url=https%3A%2F%2Fraw.githubusercontent.com%2Fnoblemajo%2Fal-sql%2Fmain%2Fpackage.json)
 ![npm](https://img.shields.io/npm/v/al-sql.svg?style=plastic&logo=npm&color=red)
-![github](https://img.shields.io/badge/dynamic/json?style=plastic&color=darkviolet&label=GitHub&prefix=v&query=version&url=https%3A%2F%2Fraw.githubusercontent.com%2Fmajo418%2Fal-sql%2Fmain%2Fpackage.json)
+![github](https://img.shields.io/badge/dynamic/json?style=plastic&color=darkviolet&label=GitHub&prefix=v&query=version&url=https%3A%2F%2Fraw.githubusercontent.com%2Fnoblemajo%2Fal-sql%2Fmain%2Fpackage.json)
 
-![](https://img.shields.io/badge/dynamic/json?color=green&label=watchers&query=watchers&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fmajo418%2Fal-sql)
-![](https://img.shields.io/badge/dynamic/json?color=yellow&label=stars&query=stargazers_count&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fmajo418%2Fal-sql)
-![](https://img.shields.io/badge/dynamic/json?color=orange&label=subscribers&query=subscribers_count&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fmajo418%2Fal-sql)
-![](https://img.shields.io/badge/dynamic/json?color=navy&label=forks&query=forks&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fmajo418%2Fal-sql)
-![](https://img.shields.io/badge/dynamic/json?color=darkred&label=open%20issues&query=open_issues&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fmajo418%2Fal-sql)
+![](https://img.shields.io/badge/dynamic/json?color=green&label=watchers&query=watchers&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fnoblemajo%2Fal-sql)
+![](https://img.shields.io/badge/dynamic/json?color=yellow&label=stars&query=stargazers_count&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fnoblemajo%2Fal-sql)
+![](https://img.shields.io/badge/dynamic/json?color=orange&label=subscribers&query=subscribers_count&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fnoblemajo%2Fal-sql)
+![](https://img.shields.io/badge/dynamic/json?color=navy&label=forks&query=forks&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fnoblemajo%2Fal-sql)
+![](https://img.shields.io/badge/dynamic/json?color=darkred&label=open%20issues&query=open_issues&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fnoblemajo%2Fal-sql)
 
 # table of contents
 - [al-sql](#al-sql)
@@ -69,7 +69,7 @@ Also see: [future features](#future-features--ideas)
 # Assets
 Example:  
 showResult(object, ...options) / showTable(table, ...options)  
-![showTables output](https://raw.githubusercontent.com/majo418/al-sql/main/docs/pics/showTables.png)
+![showTables output](https://raw.githubusercontent.com/noblemajo/al-sql/main/docs/pics/showTables.png)
 
 # Getting started (postgres)
 ## 1. Install package
@@ -564,4 +564,4 @@ npm run start:watch
 
 ---
 **cya ;3**  
-*by majo418*
+*by noblemajo*

@@ -694,7 +694,7 @@ export function getPostgresType(type: string): [string, number] {
         type = type.slice(0, -1)
         type = type.substring(index + 1)
         let length = Number(type)
-        if (length == NaN) {
+        if (isNaN(length)) {
             length = -1
         }
         return [type2, length]

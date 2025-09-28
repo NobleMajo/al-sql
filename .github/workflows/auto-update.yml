@@ -1,15 +1,16 @@
-name: npm-publish
-run-name: NPM build, test and publish
+name: auto-update
+run-name: Update npm dependencies
 
 on:
+    schedule:
+        - cron: "30 12 4,18 * *"
     workflow_dispatch:
-    push:
-        branches: ["main"]
-        paths:
-            - "package.json"
+
+permissions:
+    contents: write
 
 jobs:
-    build:
+    update-deps:
         runs-on: ubuntu-latest
 
         steps:
@@ -24,7 +25,8 @@ jobs:
 
             - name: Update npm dependencies
               run: |
-                  npm ci
+                  npm version patch --no-git-tag-version
+                  npm update
                   npm run build
                   npm run test --if-present
 
@@ -42,8 +44,8 @@ jobs:
                       dist
                       package*.json
 
-    publish-npmjs-com:
-        needs: build
+    publish-npm:
+        needs: update-deps
         runs-on: ubuntu-latest
         steps:
             - name: Checkout repository

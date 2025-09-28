@@ -1,0 +1,47 @@
+name: first-interaction-greetings
+run-name: First interaction greetings
+
+on: [pull_request_target, issues]
+
+jobs:
+    greeting:
+        runs-on: ubuntu-latest
+        permissions:
+            issues: write
+            pull-requests: write
+        steps:
+            - name: First interaction greetings
+              uses: actions/first-interaction@v1
+              with:
+                  repo-token: ${{ secrets.GITHUB_TOKEN }}
+                  issue-message: |
+                      👋 Hii!
+
+                      Welcome to the repository, and thank you for opening an issue. 🎉
+                      We're excited to have you contribute!
+                      Please make sure to include all the relevant details to help us understand your report or suggestion.
+
+                      If you’re new here, take a moment to review our [contribution guidelines](../blob/main/CONTRIBUTING.md).
+                      These document will help you collaborate effectively and ensure a positive experience for everyone.
+
+                      We appreciate your effort and look forward to collaborating with you! 🚀
+                      When chatting, please don't forget that we are human beings and that we do this with our own dedication and out of joy.
+
+                      Cheers ❤️
+                  pr-message: |
+                      👋 Hii!
+
+                      Welcome, and thank you for opening your first pull request with us! 🎉 We're thrilled to see your contribution.
+
+                      Before we review, please ensure that:
+                      - You've followed the [contribution guidelines](../blob/main/CONTRIBUTING.md).
+                      - Your changes are thoroughly tested and documented (if applicable).
+                      - The PR description includes all changes and necessary details for the reviewers.
+
+                      Our team will review your submission as soon as possible.
+                      In the meantime, feel free to ask any questions or provide additional context to help with the review process.
+
+                      We appreciate your effort and look forward to collaborating with you! 🚀
+                      When chatting, please don't forget that we are human beings and that we do this with our own dedication and out of joy.
+
+                      Cheers ❤️

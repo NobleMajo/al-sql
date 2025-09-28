@@ -1,0 +1,67 @@
+name: Build and Test on Pull Request
+
+on:
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    build-and-test:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 24
+
+            - name: Install dependencies
+              id: deps
+              run: npm ci
+              continue-on-error: true
+
+            - name: Build project
+              id: build
+              run: npm run build
+              continue-on-error: true
+
+            - name: Run tests
+              id: test
+              run: npm run test
+              continue-on-error: true
+
+            - name: Post comment on PR
+              uses: peter-evans/create-or-update-comment@v3
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  repository: ${{ github.repository }}
+                  issue-number:
+                      ${{ github.event.pull_request.number }}
+                  body: |
+                      ${{ steps.outcome.outputs.message }}
+
+            - id: outcome
+              run: |
+                  status() {
+                    if [ "$1" == "success" ]; then
+                      echo "✅ Success"
+                    else
+                      echo "❌ Failed"
+                    fi
+                  }
+
+                  deps_status=$(status "${{ steps.deps.outcome }}")
+                  build_status=$(status "${{ steps.build.outcome }}")
+                  test_status=$(status "${{ steps.test.outcome }}")
+
+                  if [ "${{ steps.deps.outcome }}" == "success" ] && \
+                     [ "${{ steps.build.outcome }}" == "success" ] && \
+                     [ "${{ steps.test.outcome }}" == "success" ]; then
+                    echo "message=✅ Everything successful! Deps, build and tests passed!" >> $GITHUB_ENV
+                  else
+                    echo "message=❌ Failed tests! Your changes may have broken something:\n- install dependencies: $deps_status\n- build project: $build_status\n- run tests: $test_status\n\nPlease run the test locally and review and fix your changes." >> $GITHUB_ENV
+                  fi
+              shell: bash
